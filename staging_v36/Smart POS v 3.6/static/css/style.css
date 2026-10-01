@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --bg-color: #f4f6f9;
+    --sidebar-bg: #111827;
+    --sidebar-text: #d1d5db;
+    --sidebar-hover: #1f2937;
+    --card-bg: #ffffff;
+    --text-color: #111827;
+    --sub-text: #4b5563;
+    --border-color: #e5e7eb;
+}
+
+[data-theme="dark"] {
+    --bg-color: #080c14;
+    --sidebar-bg: #030712;
+    --sidebar-text: #e5e7eb;
+    --sidebar-hover: #111827;
+    --card-bg: #111827;
+    --text-color: #ffffff !important;
+    --sub-text: #cbd5e1 !important; /* ڈارک موڈ میں عنوانات بالکل صاف اور روشن */
+    --border-color: #1f2937;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    transition: all 0.2s ease;
+}
+
+/* اردو فونٹ اور بڑا سائز */
+[dir="rtl"], [dir="rtl"] * {
+    font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Tahoma, sans-serif !important;
+}
+
+/* اردو عنوانات کو بڑا، موٹا اور واضح بنانا */
+[dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6, 
+[dir="rtl"] .brand-text, [dir="rtl"] .topbar-title {
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    line-height: 2 !important;
+}
+
+[dir="rtl"] .sidebar .nav-link span {
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+}
+
+/* ڈارک موڈ میں کارڈز اور ان کے اندر کا ٹیکسٹ فکس */
+.custom-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text-color);
+}
+
+.custom-card small, 
+.custom-card .text-muted, 
+.custom-card span {
+    color: var(--sub-text) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+}
+
+/* ٹاپ بار اور سائیڈبار */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px 10px;
+    z-index: 100;
+}
+
+[dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+}
+
+.main-content {
+    margin-left: 240px;
+    padding: 25px;
+}
+
+[dir="rtl"] .main-content {
+    margin-left: 0;
+    margin-right: 240px;
+}
+
+.sidebar .nav-link {
+    color: var(--sidebar-text);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    background-color: #059669;
+    color: #ffffff !important;
+}
+
+/* پرنٹنگ کی خوبصورت سیٹنگ */
+@media print {
+    .sidebar, .topbar, .btn, .no-print {
+        display: none !important;
+    }
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .custom-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+}
