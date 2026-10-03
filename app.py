@@ -6040,6 +6040,73 @@ def pos_screen():
     conn.close()
     return render_template('pos.html', products=products, customers=customers, tables=[dict(t) for t in tables])
 
+@app.route('/restaurant/pos')
+@app.route('/pos/restaurant')
+@login_required
+def restaurant_pos_screen():
+    conn = get_db()
+    products_db = conn.execute("SELECT * FROM products WHERE (is_deleted = 0 OR is_deleted IS NULL) ORDER BY category ASC, name ASC").fetchall()
+    
+    products = []
+    categories = set()
+    for p in products_db:
+        pd = dict(p)
+        pd['price'] = pd.get('sale_price', 0)
+        cat = (pd.get('category') or '').strip() or 'General'
+        categories.add(cat)
+        products.append(pd)
+        
+    customers = conn.execute("SELECT * FROM customers ORDER BY name ASC").fetchall()
+    tables = conn.execute("SELECT * FROM restaurant_tables ORDER BY section, id").fetchall()
+    store = get_store_settings()
+    conn.close()
+    return render_template('restaurant_pos.html', 
+                           products=products, 
+                           categories=sorted(list(categories)), 
+                           customers=[dict(c) for c in customers], 
+                           tables=[dict(t) for t in tables],
+                           store=store)
+
+@app.route('/api/restaurant/seed_demo', methods=['POST'])
+@login_required
+def api_seed_restaurant_demo():
+    try:
+        sample_dishes = [
+            ("Special Chicken Biryani (اسپیشل چکن بریانی)", "Rice & Biryani", "Plate", 220, 380, 100),
+            ("Chicken Karahi Half (چکن کڑاہی ہاف)", "Karahi & Handi", "Karahi", 600, 950, 50),
+            ("Chicken Karahi Full (چکن کڑاہی فل)", "Karahi & Handi", "Karahi", 1100, 1750, 50),
+            ("Crispy Zinger Burger (کرسپی زنگر برگر)", "Fast Food", "Pcs", 240, 420, 100),
+            ("Club Sandwich Special (کلب سینڈوچ)", "Fast Food", "Pcs", 210, 380, 80),
+            ("Chicken Tikka Chest Boti (چکن تکہ چیسٹ)", "BBQ & Tikka", "Plate", 200, 360, 80),
+            ("Beef Seekh Kabab 4 Pcs (بیف سیخ کباب)", "BBQ & Tikka", "Plate", 190, 340, 80),
+            ("Chicken Malai Boti (چکن ملائی بوٹی)", "BBQ & Tikka", "Plate", 280, 480, 70),
+            ("Chicken Achari Handi (چکن اچاری ہانڈی)", "Karahi & Handi", "Handi", 750, 1250, 40),
+            ("Chicken Cheese Pizza (چکن چیز پیزا میڈیم)", "Pizza & Pasta", "Pcs", 480, 850, 60),
+            ("Fresh Roghani Naan (تازہ روغنی نان)", "Tandoor & Breads", "Pcs", 25, 60, 200),
+            ("Garlic Naan Special (گارلک نان اسپیشل)", "Tandoor & Breads", "Pcs", 40, 90, 150),
+            ("Fresh Salad & Mint Raita (سلاد اور رائتہ)", "Salads & Raita", "Plate", 50, 120, 100),
+            ("Soft Drink 500ml (کولڈ ڈرنک)", "Beverages", "Bottle", 70, 90, 200),
+            ("Karak Doodh Patti Chai (کڑک دودھ پتی چائے)", "Beverages & Chai", "Cup", 40, 100, 300),
+            ("Shahi Kheer Cup (شاہی کھیر کپ)", "Desserts", "Cup", 80, 150, 80)
+        ]
+        conn = get_db()
+        added_count = 0
+        for name, cat, unit, buy_price, sale_price, stock in sample_dishes:
+            existing = conn.execute("SELECT id FROM products WHERE name = ?", (name,)).fetchone()
+            if not existing:
+                code_rnd = secrets.randbelow(9000) + 1000
+                conn.execute("""
+                    INSERT INTO products (name, category, unit, buy_price, sale_price, stock, min_stock, code)
+                    VALUES (?, ?, ?, ?, ?, ?, 10, ?)
+                """, (name, cat, unit, buy_price, sale_price, stock, f"REST-{code_rnd}"))
+                added_count += 1
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': f'{added_count} لذیذ کھانے مینو میں شامل کر دیے گئے ہیں!', 'count': added_count})
+    except Exception as e:
+        logger.error(f"Error seeding restaurant demo menu: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/save_sale', methods=['POST'])
 @login_required
 def save_sale():

@@ -271,24 +271,6 @@
                 </div>
             </div>
 
-            <!-- ⚖️ فوری وزنی پیمانہ (Quick Weight Scale for Bakery, Sweets & Meat) -->
-            {% if store.enable_weight %}
-            <div class="mb-3 p-2 rounded-3 border" style="background: #f8fafc;">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="small fw-bold text-muted">⚖️ فوری وزنی پیمانہ (Quick Weight Scale):</span>
-                </div>
-                <div class="d-flex flex-wrap gap-1">
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.125)">125g</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.25)">250g (پاؤ)</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 font-monospace fw-bold" onclick="setFractionalQty(0.5)">500g (آدھا کلو)</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.75)">750g (تین پاؤ)</button>
-                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 font-monospace fw-bold" onclick="setFractionalQty(1.0)">1 Kg</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(1.5)">1.5 Kg</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(2.0)">2 Kg</button>
-                </div>
-            </div>
-            {% endif %}
-
             <!-- Weight field — only shown for Pcs-based products -->
             <div class="row g-2 mb-3" id="weightFieldRow" style="display:none;">
                 <div class="col-12">
@@ -309,61 +291,6 @@
                 <span class="lang-text" data-en="Add to Cart" data-ur="بل میں شامل کریں">Add to Cart</span>
             </button>
         </div>
-
-        <!-- 🍽️ Order Type & Restaurant Table Selector -->
-        {% if store.enable_tables or store.enable_delivery %}
-        <div class="pos-card mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="fw-bold mb-0 pos-card-title d-flex align-items-center gap-2">
-                    <span>🍽️</span>
-                    <span class="lang-text" data-en="Order Type & Table" data-ur="آرڈر کی قسم اور ٹیبل">Order Type & Table</span>
-                </h6>
-                <span id="activeOrderTypeBadge" class="badge bg-primary">{% if store.enable_tables %}Dine-In (ڈائن ان){% else %}Takeaway (پارسل){% endif %}</span>
-            </div>
-
-            <div class="btn-group w-100 mb-2" role="group">
-                {% if store.enable_tables %}
-                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeDineIn" value="dine_in" checked onchange="switchOrderType('dine_in')">
-                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeDineIn">🍽️ Dine-In</label>
-                {% endif %}
-
-                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeTakeaway" value="takeaway" {% if not store.enable_tables %}checked{% endif %} onchange="switchOrderType('takeaway')">
-                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeTakeaway">🥡 Takeaway</label>
-
-                {% if store.enable_delivery %}
-                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeDelivery" value="delivery" onchange="switchOrderType('delivery')">
-                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeDelivery">🛵 Delivery</label>
-                {% endif %}
-            </div>
-
-            <!-- Dining Table Selector (Dine-In only) -->
-            {% if store.enable_tables %}
-            <div id="tableSelectorBox" class="mt-2">
-                <label class="form-label field-label mb-1 lang-text" data-en="Dining Table / Cabin:" data-ur="ڈائن ان ٹیبل یا فیملی روم:">Dining Table / Cabin:</label>
-                <select id="posTableSelect" class="form-select fw-bold shadow-none">
-                    <option value="">-- منتخب کریں (Select Table) --</option>
-                    {% for t in tables %}
-                    <option value="{{ t.id }}" data-number="{{ t.table_number }}">{{ t.table_number }} ({{ t.section }}) {% if t.status == 'occupied' %}🔴 کھانا جاری (Rs. {{ "{:,.0f}".format(t.current_amount or 0) }}){% elif t.status == 'billed' %}🟡 بل جاری{% else %}🟢 خالی{% endif %}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-
-            <!-- Rider & Delivery Charges (Delivery only) -->
-            {% if store.enable_delivery %}
-            <div id="deliveryInfoBox" class="row g-2 mt-1" style="display: none;">
-                <div class="col-7">
-                    <label class="form-label field-label mb-1 small lang-text" data-en="Rider Name:" data-ur="رائیڈر کا نام:">Rider Name:</label>
-                    <input type="text" id="posRiderName" class="form-control form-control-sm shadow-none" placeholder="مثلاً: علی رضا">
-                </div>
-                <div class="col-5">
-                    <label class="form-label field-label mb-1 small lang-text" data-en="Delivery Charges:" data-ur="ڈلیوری چارجز:">Delivery Charges:</label>
-                    <input type="number" id="posDeliveryCharges" class="form-control form-control-sm font-monospace fw-bold shadow-none" placeholder="0" oninput="updateTotals()">
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
 
         <!-- سمارٹ کسٹمر باکس (Cash / Existing Credit / New Credit) -->
         <div class="pos-card">
@@ -631,28 +558,8 @@
                     .btn-kot-modern:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(245, 158, 11, 0.5); color: white; }
                 </style>
 
-                {% if store.enable_kot %}
-                <div class="col-4">
-                    <button class="btn btn-kot-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(false, true)" title="کچن میں آرڈر بھیجیں اور KOT پرنٹ کریں">
-                        <span style="font-size: 1.3rem;">👨‍🍳</span>
-                        <span class="small lang-text" data-en="KOT (F8)" data-ur="KOT کچن ٹکٹ (F8)">KOT کچن ٹکٹ (F8)</span>
-                    </button>
-                </div>
-                <div class="col-4">
-                    <button class="btn btn-save-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(false, false)">
-                        <span style="font-size: 1.3rem;">💾</span>
-                        <span class="small lang-text" data-en="SAVE ONLY" data-ur="صرف محفوظ">صرف محفوظ</span>
-                    </button>
-                </div>
-                <div class="col-4">
-                    <button class="btn btn-print-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(true, false)">
-                        <span style="font-size: 1.3rem;">🖨️</span>
-                        <span class="small lang-text" data-en="PRINT BILL (F9)" data-ur="بل پرنٹ کریں (F9)">بل پرنٹ کریں (F9)</span>
-                    </button>
-                </div>
-                {% else %}
                 <div class="col-6">
-                    <button class="btn btn-save-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(false, false)">
+                    <button class="btn btn-save-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(false)">
                         <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4.207a1 1 0 0 0-.293-.707l-2.5-2.5A1 1 0 0 0 10.5 1H2zm13 3.207V13a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8.5l3.5 3.5zM4.5 13a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-7zM5 12h6v-2H5v2z"/>
                         </svg>
@@ -660,7 +567,7 @@
                     </button>
                 </div>
                 <div class="col-6">
-                    <button class="btn btn-print-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(true, false)">
+                    <button class="btn btn-print-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(true)">
                         <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
                             <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
@@ -668,7 +575,6 @@
                         <span class="lang-text" data-en="SAVE & PRINT (F9)" data-ur="محفوظ اور پرنٹ کریں">SAVE & PRINT (F9)</span>
                     </button>
                 </div>
-                {% endif %}
             </div>
 
         </div>

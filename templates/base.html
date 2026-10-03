@@ -1228,7 +1228,13 @@
                         <span class="sidebar-label lang-text" data-en="Sales Counter" data-ur="سیل کاؤنٹر / بلنگ">سیل کاؤنٹر / بلنگ</span>
                     </a>
                 </li>
-                {% if store.enable_tables %}
+                {% if store.enable_tables or store.business_type == 'restaurant' %}
+                <li class="sidebar-item">
+                    <a href="/restaurant/pos" class="sidebar-link {% if request.path in ('/restaurant/pos', '/pos/restaurant') %}active{% endif %}" title="ریسٹورنٹ ٹچ کاؤنٹر">
+                        <span class="sidebar-icon-wrap"><span style="font-size: 1.15rem;">👨‍🍳</span></span>
+                        <span class="sidebar-label lang-text" data-en="Restaurant POS" data-ur="ریسٹورنٹ کاؤنٹر">ریسٹورنٹ کاؤنٹر</span>
+                    </a>
+                </li>
                 <li class="sidebar-item">
                     <a href="/tables" class="sidebar-link {% if request.path == '/tables' %}active{% endif %}" title="ڈائن ان ٹیبلز و کیبنز">
                         <span class="sidebar-icon-wrap"><svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M3 2a2 2 0 0 0-2 2v1h14V4a2 2 0 0 0-2-2H3zm12 4H1v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6zM2 14v1a1 1 0 0 0 2 0v-1h8v1a1 1 0 0 0 2 0v-1h-1a1 1 0 0 1-1-1v-1H4v1a1 1 0 0 1-1 1H2z"/></svg></span>
