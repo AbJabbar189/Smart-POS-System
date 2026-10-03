@@ -3,186 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لائسنس ایکٹیویشن - Smart POS</title>
+    <title>سافٹ ویئر لائسنس ایکٹیویشن | Smart POS System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'Jameel Noori Nastaleeq';
-            src: local('Jameel Noori Nastaleeq'),
-                 url('/static/fonts/JameelNooriNastaleeq.ttf') format('truetype');
+            src: url("{{ url_for('static', filename='fonts/JameelNooriNastaleeq.ttf') }}") format('truetype');
+            font-weight: normal;
+            font-style: normal;
             font-display: swap;
         }
+
+        :root {
+            --bg-primary: #070b14;
+            --card-bg: rgba(17, 24, 39, 0.92);
+            --accent-cyan: #38bdf8;
+            --accent-blue: #0284c7;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-glow: rgba(56, 189, 248, 0.25);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e293b 100%);
+            background: radial-gradient(circle at 50% 20%, #0f172a 0%, #070b14 85%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-            color: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 24px 16px;
+            color: var(--text-light);
+            overflow-x: hidden;
         }
-        .license-card {
-            background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(2, 132, 199, 0.15);
-            width: 100%;
-            max-width: 540px;
-            padding: 36px 32px;
-        }
-        .urdu-font {
+
+        .nastaleeq {
             font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+            line-height: 1.85 !important;
+            letter-spacing: 0;
         }
-        .hwid-box {
-            background: #090d16;
-            border: 1px dashed #0284c7;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin: 18px 0;
+
+        .nastaleeq-heading {
+            font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+            line-height: 1.7 !important;
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .license-container {
+            width: 100%;
+            max-width: 520px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(2, 132, 199, 0.15);
+            padding: 36px 32px;
+            position: relative;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(56, 189, 248, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .portal-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-top: 4px;
+            font-family: 'Inter', sans-serif;
+            direction: ltr;
+        }
+
+        /* Status Banner */
+        .status-box {
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #34d399;
+        }
+
+        .status-locked {
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #f87171;
+        }
+
+        .status-trial {
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fbbf24;
+        }
+
+        /* Machine ID Field */
+        .section-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .label-ur {
+            font-size: 1.15rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .label-en {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            direction: ltr;
+        }
+
+        .hwid-card {
+            background: #090e1a;
+            border: 1.5px dashed rgba(56, 189, 248, 0.4);
+            border-radius: 14px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
+            margin-bottom: 20px;
+            direction: ltr;
         }
-        .hwid-code {
-            font-family: 'Consolas', monospace;
-            font-size: 1.15rem;
+
+        .hwid-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.18rem;
             font-weight: 700;
-            color: #38bdf8;
+            color: var(--accent-cyan);
             letter-spacing: 1.5px;
         }
-        .copy-btn {
-            background: #0284c7;
-            color: white;
-            border: none;
-            padding: 6px 14px;
+
+        .btn-copy {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 6px 14px;
+            font-size: 0.8rem;
             font-weight: 600;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
-        .copy-btn:hover {
-            background: #0369a1;
+
+        .btn-copy:hover {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
             transform: translateY(-1px);
         }
-        .key-input {
-            background: #090d16;
+
+        /* Key Input Field */
+        .key-input-box {
+            background: #090e1a;
             border: 2px solid #334155;
-            color: #4ade80;
-            font-family: 'Consolas', monospace;
-            font-size: 1.05rem;
-            font-weight: 600;
-            padding: 12px 16px;
-            border-radius: 10px;
+            border-radius: 14px;
+            color: #34d399;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 14px 16px;
             text-align: center;
-            letter-spacing: 1px;
-            transition: border-color 0.2s;
+            letter-spacing: 1.5px;
+            width: 100%;
+            transition: all 0.2s ease;
+            direction: ltr;
+            margin-bottom: 18px;
         }
-        .key-input:focus {
-            background: #090d16;
-            border-color: #38bdf8;
-            color: #4ade80;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+
+        .key-input-box:focus {
             outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+            background: #070c17;
         }
+
+        .key-input-box::placeholder {
+            color: #475569;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        /* Action Buttons */
         .btn-activate {
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             border: none;
-            color: white;
-            font-weight: 700;
-            padding: 12px 24px;
-            border-radius: 10px;
+            border-radius: 14px;
+            padding: 14px;
             width: 100%;
+            color: #ffffff;
+            font-weight: 700;
             font-size: 1rem;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
         }
+
         .btn-activate:hover {
             background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.5);
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.5);
+            transform: translateY(-2px);
         }
-        .support-info {
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 10px;
-            padding: 14px;
-            margin-top: 24px;
-            font-size: 0.84rem;
-            border-right: 4px solid #38bdf8;
+
+        .btn-activate:active {
+            transform: translateY(0);
+        }
+
+        .btn-activate .btn-title-ur {
+            font-size: 1.25rem;
+            line-height: 1.4;
+        }
+
+        .btn-activate .btn-title-en {
+            font-size: 0.74rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-dashboard {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 10px;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-dashboard:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        /* Instructions Card */
+        .instructions-card {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-top: 22px;
+        }
+
+        .instructions-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-cyan);
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .instruction-step {
+            font-size: 0.98rem;
             color: #cbd5e1;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .step-num {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
     </style>
 </head>
 <body>
 
-<div class="license-card text-center">
-    <!-- Header Logo & Title -->
-    <img src="{{ store.logo_path or url_for('static', filename='img/jbs_icon.png') }}" alt="Logo" style="width: 58px; height: 58px; object-fit: contain; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); margin-bottom: 12px;">
-    
-    <h3 class="fw-bold mb-1 urdu-font" style="font-size: 26px; color: #fff;">{{ store.store_name_ur or 'اسمارٹ پی او ایس سسٹم' }}</h3>
-    <div class="text-info fw-bold small mb-3 font-monospace" style="letter-spacing: 0.5px;">SMART POS - MACHINE LICENSE PROTECTION</div>
+<div class="license-container">
+    <!-- Header -->
+    <div class="brand-header">
+        <img src="{{ store.logo_path or url_for('static', filename='img/jbs_icon.png') }}" alt="Logo" class="brand-logo">
+        <h1 class="nastaleeq-heading">{{ store.store_name_ur or 'اسمارٹ پی او ایس سسٹم' }}</h1>
+        <div class="portal-badge">Security License Activation</div>
+    </div>
 
-    <!-- Status Alert -->
+    <!-- Status Alert Banner -->
     {% if license_info.is_valid %}
-        <div class="alert alert-success py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(22, 163, 74, 0.2); color: #4ade80;">
-            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
-            {{ license_info.message }}
+        <div class="status-box status-active">
+            <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+            <div>
+                <div class="nastaleeq" style="font-size: 1.15rem; font-weight: 700;">{{ license_info.message }}</div>
+                <div style="font-size: 0.74rem; opacity: 0.85; direction: ltr; text-align: right;">System Unlocked & Ready</div>
+            </div>
         </div>
     {% elif license_info.status == 'expired' %}
-        <div class="alert alert-danger py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(220, 38, 38, 0.2); color: #f87171;">
-            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>
-            {{ license_info.message }}
+        <div class="status-box status-locked">
+            <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>
+            <div>
+                <div class="nastaleeq" style="font-size: 1.15rem; font-weight: 700;">{{ license_info.message }}</div>
+                <div style="font-size: 0.74rem; opacity: 0.85; direction: ltr; text-align: right;">Trial Period Expired</div>
+            </div>
         </div>
     {% else %}
-        <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(234, 179, 8, 0.15); color: #facc15;">
-            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
-            سافٹ ویئر اس کمپیوٹر کے لیے ایکٹیویٹ نہیں ہے۔
+        <div class="status-box status-locked">
+            <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+            <div>
+                <div class="nastaleeq" style="font-size: 1.15rem; font-weight: 700;">سافٹ ویئر لائسنس غیر فعال ہے</div>
+                <div style="font-size: 0.74rem; opacity: 0.85; direction: ltr; text-align: right;">Software Locked — Activation Required</div>
+            </div>
         </div>
     {% endif %}
 
     <!-- Machine ID Display -->
-    <div class="text-start mb-1 text-light small fw-bold">
-        <span>کمپیوٹر مشین آئی ڈی (Machine ID):</span>
+    <div class="section-label">
+        <span class="label-ur nastaleeq">کمپیوٹر مشین آئی ڈی</span>
+        <span class="label-en">Hardware Machine ID</span>
     </div>
-    <div class="hwid-box" dir="ltr">
-        <span class="hwid-code" id="machineIdText">{{ license_info.machine_id }}</span>
-        <button type="button" class="copy-btn" onclick="copyMachineId()">
-            <span id="copyBtnText">📋 کاپی کریں (Copy)</span>
+    <div class="hwid-card">
+        <span class="hwid-value" id="machineIdText">{{ license_info.machine_id }}</span>
+        <button type="button" class="btn-copy" onclick="copyMachineId()">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+            <span id="copyBtnText">کاپی کریں</span>
         </button>
     </div>
 
     <!-- Activation Form -->
-    <form id="activateForm" class="mt-3" onsubmit="handleActivation(event)">
-        <div class="text-start mb-1 text-light small fw-bold">
-            <span>ایکٹیویشن کوڈ (Activation Key):</span>
+    <form id="activateForm" onsubmit="handleActivation(event)">
+        <div class="section-label">
+            <span class="label-ur nastaleeq">ایکٹیویشن کی درج کریں</span>
+            <span class="label-en">Enter Activation Key</span>
         </div>
-        <input type="text" id="licenseKeyInput" class="form-control key-input mb-3" 
+        <input type="text" id="licenseKeyInput" class="key-input-box" 
                placeholder="ACT-LIFE-XXXXXXXX-XXXX-XXXX" 
-               autocomplete="off" required dir="ltr">
+               autocomplete="off" required spellcheck="false">
 
-        <button type="submit" class="btn btn-activate d-flex align-items-center justify-content-center gap-2" id="btnSubmit">
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.5 7.5a.5.5 0 0 0 0-1H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H11.5z"/></svg>
-            <span>ایکٹیویٹ کریں (Activate License)</span>
+        <button type="submit" class="btn-activate" id="btnSubmit">
+            <span class="btn-title-ur nastaleeq">سافٹ ویئر ایکٹیویٹ کریں</span>
+            <span class="btn-title-en">Activate License</span>
         </button>
     </form>
 
     {% if license_info.is_valid %}
-    <div class="mt-3">
-        <a href="/dashboard" class="btn btn-outline-light w-100 py-2 fw-bold" style="border-radius: 10px;">
-            سافٹ ویئر کھولیں (Go to Dashboard) ➔
-        </a>
-    </div>
+    <a href="/dashboard" class="btn-dashboard">
+        <span class="nastaleeq">سافٹ ویئر میں داخل ہوں ➔</span>
+    </a>
     {% endif %}
 
-    <!-- Support Notice -->
-    <div class="support-info text-start">
-        <div class="fw-bold mb-1 text-info">💡 لائسنس کی حاصل کرنے کا طریقہ:</div>
-        <div>1. اوپر دی گئی <strong>مشین آئی ڈی (Machine ID)</strong> کاپی کریں۔</div>
-        <div>2. یہ آئی ڈی اپنے سافٹ ویئر ڈویلپر کو واٹس ایپ یا ایس ایم ایس کریں۔</div>
-        <div>3. ان سے موصول ہونے والا خفیہ ایکٹیویشن کوڈ یہاں درج کر کے بٹن دبائیں۔</div>
+    <!-- Instructions -->
+    <div class="instructions-card">
+        <div class="instructions-title nastaleeq">
+            <span>💡</span>
+            <span>لائسنس ایکٹیویٹ کرنے کا طریقہ</span>
+        </div>
+        <div class="instruction-step">
+            <span class="step-num">1</span>
+            <span class="nastaleeq">اوپر دی گئی <strong>مشین آئی ڈی</strong> کاپی کر کے اپنے ڈویلپر کو واٹس ایپ کریں۔</span>
+        </div>
+        <div class="instruction-step">
+            <span class="step-num">2</span>
+            <span class="nastaleeq">ڈویلپر سے موصول ہونے والی خفیہ <strong>ایکٹیویشن کی</strong> یہاں درج کریں۔</span>
+        </div>
+        <div class="instruction-step">
+            <span class="step-num">3</span>
+            <span class="nastaleeq"><strong>"ایکٹیویٹ کریں"</strong> کے بٹن پر کلک کریں، سافٹ ویئر فوری ان لاک ہو جائے گا۔</span>
+        </div>
     </div>
 </div>
 
@@ -192,16 +439,16 @@ function copyMachineId() {
     const text = document.getElementById('machineIdText').innerText.trim();
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById('copyBtnText');
-        btn.innerText = '✓ کاپی ہو گیا!';
-        setTimeout(() => { btn.innerText = '📋 کاپی کریں (Copy)'; }, 2500);
+        btn.innerText = '✓ کاپی ہو گیا';
+        setTimeout(() => { btn.innerText = 'کاپی کریں'; }, 2500);
         Swal.fire({
             icon: 'success',
             title: 'مشین آئی ڈی کاپی ہو گئی!',
             text: text,
-            timer: 1800,
+            timer: 1600,
             showConfirmButton: false,
-            background: '#1e293b',
-            color: '#fff'
+            background: '#111827',
+            color: '#ffffff'
         });
     });
 }
@@ -213,7 +460,7 @@ function handleActivation(e) {
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerHTML = 'ایکٹیویٹ ہو رہا ہے...';
+    btn.innerHTML = '<span class="nastaleeq">ایکٹیویٹ ہو رہا ہے...</span>';
 
     fetch('/api/license/activate', {
         method: 'POST',
@@ -223,15 +470,15 @@ function handleActivation(e) {
     .then(r => r.json())
     .then(data => {
         btn.disabled = false;
-        btn.innerHTML = '<span>ایکٹیویٹ کریں (Activate License)</span>';
+        btn.innerHTML = '<span class="btn-title-ur nastaleeq">سافٹ ویئر ایکٹیویٹ کریں</span><span class="btn-title-en">Activate License</span>';
         if (data.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'مبارک ہو!',
                 text: data.message || 'سافٹ ویئر کامیابی سے ایکٹیویٹ ہو گیا ہے۔',
                 confirmButtonText: 'ٹھیک ہے (Continue)',
-                background: '#1e293b',
-                color: '#fff',
+                background: '#111827',
+                color: '#ffffff',
                 confirmButtonColor: '#0284c7'
             }).then(() => {
                 window.location.href = '/dashboard';
@@ -242,21 +489,21 @@ function handleActivation(e) {
                 title: 'ایکٹیویشن ناکام!',
                 text: data.message || 'غلط لائسنس کی درج کی گئی ہے۔',
                 confirmButtonText: 'دوبارہ کوشش کریں',
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonColor: '#dc2626'
+                background: '#111827',
+                color: '#ffffff',
+                confirmButtonColor: '#ef4444'
             });
         }
     })
     .catch(err => {
         btn.disabled = false;
-        btn.innerHTML = '<span>ایکٹیویٹ کریں (Activate License)</span>';
+        btn.innerHTML = '<span class="btn-title-ur nastaleeq">سافٹ ویئر ایکٹیویٹ کریں</span><span class="btn-title-en">Activate License</span>';
         Swal.fire({
             icon: 'error',
             title: 'خرابی',
             text: 'سرور سے رابطہ نہ ہو سکا۔',
-            background: '#1e293b',
-            color: '#fff'
+            background: '#111827',
+            color: '#ffffff'
         });
     });
 }
