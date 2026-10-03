@@ -149,12 +149,12 @@
 
 <div class="login-card">
     <div class="text-center mb-4">
-        <img src="{{ url_for('static', filename='img/jbs_badge.png') }}" alt="JBS Logo" style="max-width: 180px; height: auto; object-fit: contain; border-radius: 14px; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35); background: #ffffff; padding: 6px; margin-bottom: 14px; border: 2px solid #0284c7;">
-        <h2 class="fw-bold text-white mb-1 login-urdu-title">اسمارٹ پی او ایس</h2>
-        <div class="text-info fw-bold small mb-1">SMART POS SYSTEM</div>
-        <div class="text-light text-opacity-75 small" style="font-size: 0.82rem;">مین مارکیٹ، لاہور</div>
+        <img src="{{ store.logo_path or url_for('static', filename='img/jbs_badge.png') }}" alt="Store Logo" style="max-width: 180px; height: auto; object-fit: contain; border-radius: 14px; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35); background: #ffffff; padding: 6px; margin-bottom: 14px; border: 2px solid #0284c7;">
+        <h2 class="fw-bold text-white mb-1 login-urdu-title">{{ store.store_name_ur }}</h2>
+        <div class="text-info fw-bold small mb-1">{{ store.store_name_en }}</div>
+        <div class="text-light text-opacity-75 small" style="font-size: 0.82rem;">{{ store.address_ur }}</div>
         <div class="text-warning small font-monospace mt-1" style="font-size: 0.8rem; letter-spacing: 0.5px;">
-            📞 0300-0000000
+            📞 {{ store.phone1 }}{% if store.phone2 %} | {{ store.phone2 }}{% endif %}
         </div>
     </div>
 

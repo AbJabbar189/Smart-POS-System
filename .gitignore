@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+server.log
+
+# Private Developer Key Generator (Keep safe!)
+Developer_Key_Generator/
+Generate_License_Key.py
+Generate_License_Key.bat
+.license.key
+.flask_secret_key
+
+# Build and Dist artifacts
+build/
+dist/
+staging_v36/
+*.zip
+*.spec
+
+# Backups
+daily_backups/

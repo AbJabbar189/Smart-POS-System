@@ -57,12 +57,12 @@
 
 <div class="quote-container">
     <div class="header">
-        <img src="{{ url_for('static', filename='img/jbs_logo_raw.png') }}" alt="JBS" style="max-height: 40px; margin-bottom: 3px;">
-        <div class="store-title">اسمارٹ پی او ایس</div>
-        <div style="font-size: 11px; font-weight: bold;">مین مارکیٹ، لاہور</div>
+        <img src="{{ store.logo_path or url_for('static', filename='img/jbs_logo_raw.png') }}" alt="Store Logo" style="max-height: 40px; margin-bottom: 3px;">
+        <div class="store-title">{{ store.store_name_ur }}</div>
+        <div style="font-size: 11px; font-weight: bold;">{{ store.address_ur }}</div>
         <div style="text-align: center; margin: 3px 0 2px 0;" dir="rtl">
             <span style="display: inline-block; white-space: nowrap; margin: 0 4px;">
-                <span class="urdu-owner-name">فون نمبر:</span>&nbsp;<bdi dir="ltr" class="owner-phone">0300-0000000</bdi>
+                <span class="urdu-owner-name">فون نمبر:</span>&nbsp;<bdi dir="ltr" class="owner-phone">{{ store.phone1 }}{% if store.phone2 %} | {{ store.phone2 }}{% endif %}</bdi>
             </span>
         </div>
         <div class="quote-badge">قیمت کا تخمینہ / ESTIMATE QUOTATION</div>

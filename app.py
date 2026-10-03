@@ -53,6 +53,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from werkzeug.security import generate_password_hash, check_password_hash
+from PIL import Image
+import license_manager as lm
 
 try:
     import win32print
@@ -689,6 +691,27 @@ def init_db():
                 cursor.execute(idx_sql)
             except Exception:
                 pass
+
+        # 12. Store Settings & Dynamic Branding
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS store_settings (
+                id INTEGER PRIMARY KEY,
+                store_name_en TEXT DEFAULT 'Smart POS System',
+                store_name_ur TEXT DEFAULT 'اسمارٹ پی او ایس',
+                tagline TEXT DEFAULT 'Retail & Inventory Management System',
+                phone1 TEXT DEFAULT '0300-0000000',
+                phone2 TEXT DEFAULT '',
+                address_en TEXT DEFAULT 'Main Market, Lahore',
+                address_ur TEXT DEFAULT 'مین مارکیٹ، لاہور',
+                invoice_footer TEXT DEFAULT 'Thank you for your business! Smart POS System.',
+                logo_path TEXT DEFAULT '/static/img/jbs_logo_raw.png',
+                license_key TEXT DEFAULT ''
+            )
+        ''')
+        cursor.execute('''
+            INSERT OR IGNORE INTO store_settings (id, store_name_en, store_name_ur, tagline, phone1, phone2, address_en, address_ur, invoice_footer, logo_path, license_key)
+            VALUES (1, 'Smart POS System', 'اسمارٹ پی او ایس', 'Retail & Inventory Management System', '0300-0000000', '', 'Main Market, Lahore', 'مین مارکیٹ، لاہور', 'Thank you for your business! Smart POS System.', '/static/img/jbs_logo_raw.png', '')
+        ''')
     except Exception as e:
         logger.error(f"Migration error in init_db: {e}")
 
@@ -822,6 +845,257 @@ def admin_only(f):
             return redirect('/pos')
         return f(*args, **kwargs)
     return decorated_function
+
+# ----------------------------------------------------
+# 🔐 ڈائنامک اسٹور سیٹنگز اور مشین لائسنس سسٹم
+# ----------------------------------------------------
+def get_store_settings():
+    """Retrieve store settings and branding from pos.db with fallback defaults"""
+    defaults = {
+        'id': 1,
+        'store_name_en': 'Smart POS System',
+        'store_name_ur': 'اسمارٹ پی او ایس',
+        'tagline': 'Retail & Inventory Management System',
+        'phone1': '0300-0000000',
+        'phone2': '',
+        'address_en': 'Main Market, Lahore',
+        'address_ur': 'مین مارکیٹ، لاہور',
+        'invoice_footer': 'Thank you for your business! Smart POS System.',
+        'logo_path': '/static/img/jbs_logo_raw.png',
+        'license_key': ''
+    }
+    try:
+        conn = get_db()
+        row = conn.execute("SELECT * FROM store_settings WHERE id = 1").fetchone()
+        conn.close()
+        if row:
+            res = dict(row)
+            return res
+    except Exception as e:
+        logger.error(f"Error fetching store settings: {e}")
+    return defaults
+
+def get_license_state():
+    """Checks the machine's licensing status against pos.db or .license.key"""
+    # Auto-activate for Cloud / Online Demo (e.g. Render, PythonAnywhere, Bano Qabil submission)
+    if os.environ.get('RENDER') or os.environ.get('CLOUD_DEPLOY') or os.environ.get('PYTHONANYWHERE_SITE'):
+        return {
+            'machine_id': 'CLOUD-DEMO-LIVE',
+            'license_key': 'ACT-LIFE-ONLINE-DEMO',
+            'is_valid': True,
+            'status': 'lifetime',
+            'message': 'آن لائن کلاؤڈ ڈیمو فعال ہے (Online Cloud Demo Active)',
+            'expiry': 'Lifetime (ہمیشہ کے لیے)',
+            'days_remaining': 99999
+        }
+
+    machine_id = lm.get_machine_id()
+    key = ""
+    lic_file = os.path.join(BASE_DIR, '.license.key')
+    if os.path.exists(lic_file):
+        try:
+            with open(lic_file, 'r', encoding='utf-8') as f:
+                key = f.read().strip()
+        except Exception:
+            pass
+
+    if not key:
+        settings = get_store_settings()
+        key = settings.get('license_key', '').strip()
+
+    is_valid, status, message, expiry = lm.verify_license(machine_id, key)
+
+    formatted_expiry = None
+    days_remaining = None
+    if expiry:
+        if expiry == '99991231':
+            formatted_expiry = 'Lifetime (ہمیشہ کے لیے)'
+            days_remaining = 99999
+        else:
+            try:
+                dt = datetime.strptime(expiry, '%Y%m%d')
+                formatted_expiry = dt.strftime('%d-%b-%Y')
+                days_remaining = max(0, (dt.date() - datetime.now().date()).days)
+            except Exception:
+                formatted_expiry = expiry
+
+    return {
+        'machine_id': machine_id,
+        'license_key': key,
+        'is_valid': is_valid,
+        'status': status,
+        'message': message,
+        'expiry': formatted_expiry,
+        'days_remaining': days_remaining
+    }
+
+@app.context_processor
+def inject_global_settings():
+    store = get_store_settings()
+    lic = get_license_state()
+    return dict(store=store, license_info=lic)
+
+@app.before_request
+def check_license_gate():
+    # Allowed endpoints without active license
+    allowed_paths = [
+        '/license',
+        '/api/license/activate',
+        '/api/license/status',
+        '/static',
+        '/favicon.ico'
+    ]
+    path = request.path
+    for allowed in allowed_paths:
+        if path.startswith(allowed):
+            return None
+
+    lic_state = get_license_state()
+    if not lic_state['is_valid']:
+        if request.is_json or path.startswith('/api/'):
+            return jsonify({
+                'success': False,
+                'license_required': True,
+                'message': 'سافٹ ویئر لائسنس غیر فعال یا ختم ہو چکا ہے۔ براہ کرم لائسنس فعال کریں۔',
+                'machine_id': lic_state['machine_id']
+            }), 403
+        return redirect(url_for('license_page'))
+
+@app.route('/license', methods=['GET'])
+def license_page():
+    lic_state = get_license_state()
+    store = get_store_settings()
+    return render_template('license.html', license_info=lic_state, store=store)
+
+@app.route('/api/license/activate', methods=['POST'])
+def api_activate_license():
+    data = request.get_json(silent=True) or request.form
+    key = (data.get('key') or data.get('license_key') or '').strip().upper()
+    machine_id = lm.get_machine_id()
+
+    is_valid, status, msg, expiry = lm.verify_license(machine_id, key)
+    if not is_valid:
+        return jsonify({'success': False, 'message': msg}), 400
+
+    # Save to .license.key and database store_settings
+    try:
+        with open(os.path.join(BASE_DIR, '.license.key'), 'w', encoding='utf-8') as f:
+            f.write(key)
+    except Exception as e:
+        logger.error(f"Error writing .license.key file: {e}")
+
+    try:
+        conn = get_db()
+        conn.execute("UPDATE store_settings SET license_key = ? WHERE id = 1", (key,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Error saving license_key in db: {e}")
+
+    return jsonify({
+        'success': True,
+        'message': msg,
+        'status': status,
+        'expiry': expiry
+    })
+
+@app.route('/api/license/status', methods=['GET'])
+def api_license_status():
+    return jsonify(get_license_state())
+
+@app.route('/settings')
+@admin_only
+def settings_page():
+    store = get_store_settings()
+    lic = get_license_state()
+    return render_template('settings.html', store=store, license_info=lic)
+
+@app.route('/api/settings/save', methods=['POST'])
+@admin_only
+def api_settings_save():
+    try:
+        data = request.get_json(silent=True) or request.form
+        store_name_en = (data.get('store_name_en') or '').strip() or 'Smart POS System'
+        store_name_ur = (data.get('store_name_ur') or '').strip() or 'اسمارٹ پی او ایس'
+        tagline = (data.get('tagline') or '').strip()
+        phone1 = (data.get('phone1') or '').strip()
+        phone2 = (data.get('phone2') or '').strip()
+        address_en = (data.get('address_en') or '').strip()
+        address_ur = (data.get('address_ur') or '').strip()
+        invoice_footer = (data.get('invoice_footer') or '').strip()
+
+        conn = get_db()
+        conn.execute("""
+            UPDATE store_settings SET 
+                store_name_en = ?,
+                store_name_ur = ?,
+                tagline = ?,
+                phone1 = ?,
+                phone2 = ?,
+                address_en = ?,
+                address_ur = ?,
+                invoice_footer = ?
+            WHERE id = 1
+        """, (store_name_en, store_name_ur, tagline, phone1, phone2, address_en, address_ur, invoice_footer))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'اسٹور کی ترتیبات کامیابی کے ساتھ محفوظ ہو گئیں!'})
+    except Exception as e:
+        logger.error(f"Error saving settings: {e}")
+        return jsonify({'success': False, 'message': f'خرابی: {str(e)}'}), 500
+
+@app.route('/api/settings/logo', methods=['POST'])
+@admin_only
+def api_settings_logo():
+    try:
+        if 'logo_file' not in request.files:
+            return jsonify({'success': False, 'message': 'کوئی تصویر منتخب نہیں کی گئی۔'}), 400
+        file = request.files['logo_file']
+        if not file or file.filename == '':
+            return jsonify({'success': False, 'message': 'کوئی تصویر منتخب نہیں کی گئی۔'}), 400
+
+        # Validate image format via PIL
+        img = Image.open(file.stream)
+        img.verify()
+        file.stream.seek(0)
+        img = Image.open(file.stream)
+
+        # Prepare target directories
+        uploads_dir = os.path.join(STATIC_DIR, 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+        img_dir = os.path.join(STATIC_DIR, 'img')
+        os.makedirs(img_dir, exist_ok=True)
+
+        target_logo_path = os.path.join(uploads_dir, 'store_logo.png')
+        mirror_logo_path = os.path.join(img_dir, 'jbs_logo_raw.png')
+
+        # Convert to RGBA and save PNG
+        if img.mode not in ('RGB', 'RGBA'):
+            img = img.convert('RGBA')
+
+        # Resize if overly huge (> 800x800) preserving aspect ratio
+        img.thumbnail((800, 800), Image.Resampling.LANCZOS)
+        img.save(target_logo_path, format='PNG')
+        try:
+            img.save(mirror_logo_path, format='PNG')
+        except Exception:
+            pass
+
+        rel_path = f"/static/uploads/store_logo.png?v={int(datetime.now().timestamp())}"
+        conn = get_db()
+        conn.execute("UPDATE store_settings SET logo_path = ? WHERE id = 1", (rel_path,))
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'لوگو کامیابی سے تبدیل ہو گیا!',
+            'logo_url': rel_path,
+            'logo_path': rel_path
+        })
+    except Exception as e:
+        logger.error(f"Error uploading logo: {e}")
+        return jsonify({'success': False, 'message': f'تصویر اپلوڈ کرنے میں مسئلہ پیش آیا: {str(e)}'}), 500
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
@@ -1898,10 +2172,18 @@ def build_ledger_pdf(cust_dict, timeline, total_purchases, total_payments, tot_d
     story = []
 
     # 1. Header Banner Table
+    store = get_store_settings()
+    s_name = clean_pdf_text(store.get('store_name_en') or 'SMART POS SYSTEM').upper()
+    s_tagline = clean_pdf_text(store.get('tagline') or 'Point of Sale & Retail Management System')
+    s_addr = clean_pdf_text(store.get('address_en') or 'Main Market, Lahore')
+    phone1 = store.get('phone1') or ''
+    phone2 = store.get('phone2') or ''
+    phones = f"{phone1} / {phone2}".strip(" /") if (phone1 or phone2) else "0300-0000000"
+
     status_text = "<font color='#16a34a'><b>ACCOUNT SETTLED (PAID)</b></font>" if final_balance <= 0 else "<font color='#dc2626'><b>BALANCE DUE</b></font>"
     header_data = [
         [
-            Paragraph("<b>SMART POS SYSTEM</b><br/><font size=8 color='#475569'>Point of Sale & Retail Management System<br/>Main Market, Lahore<br/>Phone: 0300-0000000</font>", title_style),
+            Paragraph(f"<b>{s_name}</b><br/><font size=8 color='#475569'>{s_tagline}<br/>{s_addr}<br/>Phone: {phones}</font>", title_style),
             Paragraph(f"<b>STATEMENT OF ACCOUNT</b><br/><font size=8 color='#64748b'>Date: {today}<br/>Time: {now_str}</font><br/>{status_text}", badge_style)
         ]
     ]
@@ -2033,7 +2315,8 @@ def build_ledger_pdf(cust_dict, timeline, total_purchases, total_payments, tot_d
     # 5. Footer
     story.append(Spacer(1, 12))
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#CBD5E1'), spaceBefore=2, spaceAfter=5))
-    story.append(Paragraph("<font size=7.5 color='#94A3B8'>Thank you for your business! Smart POS System — Retail & Inventory Specialist.</font>", ParagraphStyle('F', parent=cell_style, alignment=TA_CENTER)))
+    footer_text = clean_pdf_text(store.get('invoice_footer') or 'Thank you for your business! Smart POS System.')
+    story.append(Paragraph(f"<font size=7.5 color='#94A3B8'>{footer_text}</font>", ParagraphStyle('F', parent=cell_style, alignment=TA_CENTER)))
 
     doc.build(story)
     pdf_bytes = buffer.getvalue()
@@ -2136,10 +2419,18 @@ def build_supplier_ledger_pdf(sup_dict, timeline, total_bought, total_paid, fina
     story = []
 
     # 1. Header Banner Table
+    store = get_store_settings()
+    s_name = clean_pdf_text(store.get('store_name_en') or 'SMART POS SYSTEM').upper()
+    s_tagline = clean_pdf_text(store.get('tagline') or 'Point of Sale & Retail Management System')
+    s_addr = clean_pdf_text(store.get('address_en') or 'Main Market, Lahore')
+    phone1 = store.get('phone1') or ''
+    phone2 = store.get('phone2') or ''
+    phones = f"{phone1} / {phone2}".strip(" /") if (phone1 or phone2) else "0300-0000000"
+
     status_text = "<font color='#16a34a'><b>ACCOUNT SETTLED (PAID)</b></font>" if final_balance <= 0 else "<font color='#dc2626'><b>BALANCE PAYABLE</b></font>"
     header_data = [
         [
-            Paragraph("<b>SMART POS SYSTEM</b><br/><font size=8 color='#475569'>Point of Sale & Retail Management System<br/>Main Market, Lahore<br/>Phone: 0300-0000000</font>", title_style),
+            Paragraph(f"<b>{s_name}</b><br/><font size=8 color='#475569'>{s_tagline}<br/>{s_addr}<br/>Phone: {phones}</font>", title_style),
             Paragraph(f"<b>SUPPLIER ACCOUNT LEDGER</b><br/><font size=8 color='#64748b'>Date: {today}<br/>Time: {now_str}</font><br/>{status_text}", badge_style)
         ]
     ]
@@ -2268,7 +2559,8 @@ def build_supplier_ledger_pdf(sup_dict, timeline, total_bought, total_paid, fina
     # 5. Footer
     story.append(Spacer(1, 12))
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#CBD5E1'), spaceBefore=2, spaceAfter=5))
-    story.append(Paragraph("<font size=7.5 color='#94A3B8'>Thank you for your business! Smart POS System — Retail & Inventory Specialist.</font>", ParagraphStyle('SuppF', parent=cell_style, alignment=TA_CENTER)))
+    footer_text = clean_pdf_text(store.get('invoice_footer') or 'Thank you for your business! Smart POS System.')
+    story.append(Paragraph(f"<font size=7.5 color='#94A3B8'>{footer_text}</font>", ParagraphStyle('SuppF', parent=cell_style, alignment=TA_CENTER)))
 
     doc.build(story)
     pdf_bytes = buffer.getvalue()
@@ -2346,10 +2638,15 @@ def whatsapp_prepare_ledger(cust_id):
 
     copy_success = copy_file_to_clipboard(clipboard_target)
 
+    store = get_store_settings()
+    store_name = (store.get('store_name_en') or 'SMART POS SYSTEM').upper()
+    store_addr = store.get('address_en') or 'Main Market, Lahore'
+    store_phone = store.get('phone1') or '0300-0000000'
+
     msg = (
-        f"*SMART POS SYSTEM*\n"
-        f"Main Market, Lahore\n"
-        f"Contact: 0300-0000000\n"
+        f"*{store_name}*\n"
+        f"{store_addr}\n"
+        f"Contact: {store_phone}\n"
         f"------------------------------------\n"
         f"*STATEMENT OF ACCOUNT*\n"
         f"Customer: *{cust_name}* (ID: #{cust_id})\n"
@@ -2447,9 +2744,17 @@ def make_universal_pdf_doc(buffer):
 
 def make_universal_pdf_header(doc_title, doc_badge_text, now_str, today):
     st = get_universal_pdf_styles()
+    store = get_store_settings()
+    s_name = clean_pdf_text(store.get('store_name_en') or 'SMART POS SYSTEM').upper()
+    s_tagline = clean_pdf_text(store.get('tagline') or 'Point of Sale & Retail Management System')
+    s_addr = clean_pdf_text(store.get('address_en') or 'Main Market, Lahore')
+    phone1 = store.get('phone1') or ''
+    phone2 = store.get('phone2') or ''
+    phones = f"{phone1} / {phone2}".strip(" /") if (phone1 or phone2) else "0300-0000000"
+
     header_data = [
         [
-            Paragraph("<b>SMART POS SYSTEM</b><br/><font size=8 color='#475569'>Point of Sale & Retail Management System<br/>Main Market, Lahore | Phone: 0300-0000000</font>", st['title']),
+            Paragraph(f"<b>{s_name}</b><br/><font size=8 color='#475569'>{s_tagline}<br/>{s_addr} | Phone: {phones}</font>", st['title']),
             Paragraph(f"<b>{clean_pdf_text(doc_title)}</b><br/><font size=8 color='#64748b'>Date: {today}<br/>Time: {now_str}</font><br/><font size=8 color='#0284c7'><b>{clean_pdf_text(doc_badge_text)}</b></font>", st['badge'])
         ]
     ]
@@ -2464,7 +2769,9 @@ def make_universal_pdf_header(doc_title, doc_badge_text, now_str, today):
 
 def make_universal_pdf_footer():
     st = get_universal_pdf_styles()
-    return Paragraph("<font size=7.5 color='#94A3B8'>Thank you for your business! Smart POS System — Retail & Inventory Specialist.</font>", ParagraphStyle('SuppFU', parent=st['cell_center'], alignment=TA_CENTER))
+    store = get_store_settings()
+    footer_text = clean_pdf_text(store.get('invoice_footer') or 'Thank you for your business! Smart POS System.')
+    return Paragraph(f"<font size=7.5 color='#94A3B8'>{footer_text}</font>", ParagraphStyle('SuppFU', parent=st['cell_center'], alignment=TA_CENTER))
 
 # 1. INVENTORY PDF
 def build_inventory_pdf(products, now_str, today):

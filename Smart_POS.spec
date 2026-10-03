@@ -19,6 +19,7 @@ a = Analysis(
         'sqlite3',
         'jinja2',
         'werkzeug',
+        'license_manager',
     ],
     hookspath=[],
     hooksconfig={},

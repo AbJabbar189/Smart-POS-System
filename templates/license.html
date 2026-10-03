@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لائسنس ایکٹیویشن - Smart POS</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Jameel Noori Nastaleeq';
+            src: local('Jameel Noori Nastaleeq'),
+                 url('/static/fonts/JameelNooriNastaleeq.ttf') format('truetype');
+            font-display: swap;
+        }
+        body {
+            background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            color: #f8fafc;
+        }
+        .license-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(2, 132, 199, 0.15);
+            width: 100%;
+            max-width: 540px;
+            padding: 36px 32px;
+        }
+        .urdu-font {
+            font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+        }
+        .hwid-box {
+            background: #090d16;
+            border: 1px dashed #0284c7;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin: 18px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .hwid-code {
+            font-family: 'Consolas', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 1.5px;
+        }
+        .copy-btn {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .copy-btn:hover {
+            background: #0369a1;
+            transform: translateY(-1px);
+        }
+        .key-input {
+            background: #090d16;
+            border: 2px solid #334155;
+            color: #4ade80;
+            font-family: 'Consolas', monospace;
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+            transition: border-color 0.2s;
+        }
+        .key-input:focus {
+            background: #090d16;
+            border-color: #38bdf8;
+            color: #4ade80;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+            outline: none;
+        }
+        .btn-activate {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        }
+        .btn-activate:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.5);
+        }
+        .support-info {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 24px;
+            font-size: 0.84rem;
+            border-right: 4px solid #38bdf8;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="license-card text-center">
+    <!-- Header Logo & Title -->
+    <img src="{{ store.logo_path or url_for('static', filename='img/jbs_icon.png') }}" alt="Logo" style="width: 58px; height: 58px; object-fit: contain; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); margin-bottom: 12px;">
+    
+    <h3 class="fw-bold mb-1 urdu-font" style="font-size: 26px; color: #fff;">{{ store.store_name_ur or 'اسمارٹ پی او ایس سسٹم' }}</h3>
+    <div class="text-info fw-bold small mb-3 font-monospace" style="letter-spacing: 0.5px;">SMART POS - MACHINE LICENSE PROTECTION</div>
+
+    <!-- Status Alert -->
+    {% if license_info.is_valid %}
+        <div class="alert alert-success py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(22, 163, 74, 0.2); color: #4ade80;">
+            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+            {{ license_info.message }}
+        </div>
+    {% elif license_info.status == 'expired' %}
+        <div class="alert alert-danger py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(220, 38, 38, 0.2); color: #f87171;">
+            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>
+            {{ license_info.message }}
+        </div>
+    {% else %}
+        <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-center fw-bold shadow-sm" style="border-radius: 10px; background: rgba(234, 179, 8, 0.15); color: #facc15;">
+            <svg width="18" height="18" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+            سافٹ ویئر اس کمپیوٹر کے لیے ایکٹیویٹ نہیں ہے۔
+        </div>
+    {% endif %}
+
+    <!-- Machine ID Display -->
+    <div class="text-start mb-1 text-light small fw-bold">
+        <span>کمپیوٹر مشین آئی ڈی (Machine ID):</span>
+    </div>
+    <div class="hwid-box" dir="ltr">
+        <span class="hwid-code" id="machineIdText">{{ license_info.machine_id }}</span>
+        <button type="button" class="copy-btn" onclick="copyMachineId()">
+            <span id="copyBtnText">📋 کاپی کریں (Copy)</span>
+        </button>
+    </div>
+
+    <!-- Activation Form -->
+    <form id="activateForm" class="mt-3" onsubmit="handleActivation(event)">
+        <div class="text-start mb-1 text-light small fw-bold">
+            <span>ایکٹیویشن کوڈ (Activation Key):</span>
+        </div>
+        <input type="text" id="licenseKeyInput" class="form-control key-input mb-3" 
+               placeholder="ACT-LIFE-XXXXXXXX-XXXX-XXXX" 
+               autocomplete="off" required dir="ltr">
+
+        <button type="submit" class="btn btn-activate d-flex align-items-center justify-content-center gap-2" id="btnSubmit">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.5 7.5a.5.5 0 0 0 0-1H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H11.5z"/></svg>
+            <span>ایکٹیویٹ کریں (Activate License)</span>
+        </button>
+    </form>
+
+    {% if license_info.is_valid %}
+    <div class="mt-3">
+        <a href="/dashboard" class="btn btn-outline-light w-100 py-2 fw-bold" style="border-radius: 10px;">
+            سافٹ ویئر کھولیں (Go to Dashboard) ➔
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Support Notice -->
+    <div class="support-info text-start">
+        <div class="fw-bold mb-1 text-info">💡 لائسنس کی حاصل کرنے کا طریقہ:</div>
+        <div>1. اوپر دی گئی <strong>مشین آئی ڈی (Machine ID)</strong> کاپی کریں۔</div>
+        <div>2. یہ آئی ڈی اپنے سافٹ ویئر ڈویلپر کو واٹس ایپ یا ایس ایم ایس کریں۔</div>
+        <div>3. ان سے موصول ہونے والا خفیہ ایکٹیویشن کوڈ یہاں درج کر کے بٹن دبائیں۔</div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/sweetalert2.all.min.js') }}"></script>
+<script>
+function copyMachineId() {
+    const text = document.getElementById('machineIdText').innerText.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtnText');
+        btn.innerText = '✓ کاپی ہو گیا!';
+        setTimeout(() => { btn.innerText = '📋 کاپی کریں (Copy)'; }, 2500);
+        Swal.fire({
+            icon: 'success',
+            title: 'مشین آئی ڈی کاپی ہو گئی!',
+            text: text,
+            timer: 1800,
+            showConfirmButton: false,
+            background: '#1e293b',
+            color: '#fff'
+        });
+    });
+}
+
+function handleActivation(e) {
+    e.preventDefault();
+    const key = document.getElementById('licenseKeyInput').value.trim();
+    if (!key) return;
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = 'ایکٹیویٹ ہو رہا ہے...';
+
+    fetch('/api/license/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<span>ایکٹیویٹ کریں (Activate License)</span>';
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'مبارک ہو!',
+                text: data.message || 'سافٹ ویئر کامیابی سے ایکٹیویٹ ہو گیا ہے۔',
+                confirmButtonText: 'ٹھیک ہے (Continue)',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#0284c7'
+            }).then(() => {
+                window.location.href = '/dashboard';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'ایکٹیویشن ناکام!',
+                text: data.message || 'غلط لائسنس کی درج کی گئی ہے۔',
+                confirmButtonText: 'دوبارہ کوشش کریں',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<span>ایکٹیویٹ کریں (Activate License)</span>';
+        Swal.fire({
+            icon: 'error',
+            title: 'خرابی',
+            text: 'سرور سے رابطہ نہ ہو سکا۔',
+            background: '#1e293b',
+            color: '#fff'
+        });
+    });
+}
+</script>
+
+</body>
+</html>

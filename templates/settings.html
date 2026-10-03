@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- ٹائٹل ہیڈر -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <svg width="26" height="26" fill="currentColor" class="text-primary" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg>
+                <span class="lang-text" data-en="Store Settings & Branding" data-ur="اسٹور سیٹنگز اور برانڈنگ">اسٹور سیٹنگز اور برانڈنگ</span>
+            </h3>
+            <p class="text-muted small mb-0 lang-text" data-en="Customize your shop name, contact details, receipts, and logo across the entire software." data-ur="یہاں سے اپنی دکان کا نام، رابطہ نمبر، پتہ اور لوگو تبدیل کریں جو تمام رسیدوں اور اسکرینز پر نظر آئے گا۔">یہاں سے اپنی دکان کا نام، رابطہ نمبر، پتہ اور لوگو تبدیل کریں جو تمام رسیدوں اور اسکرینز پر نظر آئے گا۔</p>
+        </div>
+        <div>
+            <a href="/dashboard" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+                <span>ڈیش بورڈ پر واپس ➔</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- بائیں کالم: اسٹور پروفائل اور لوگو -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-primary text-white py-3 px-4 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold fs-6">🏢 دکان کی معلومات اور برانڈنگ (Store Profile)</span>
+                    <span class="badge bg-light text-primary fw-bold">Live Synced</span>
+                </div>
+                <div class="card-body p-4">
+                    <!-- لوگو اپلوڈ سیکشن -->
+                    <div class="p-3 mb-4 rounded-3 border bg-light d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 72px; height: 72px; background: #fff; border-radius: 12px; border: 2px dashed #0284c7; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                                <img id="logoPreview" src="{{ store.logo_path or url_for('static', filename='img/jbs_logo_raw.png') }}" alt="Store Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">دکان کا لوگو (Store Logo / Icon)</h6>
+                                <p class="text-muted small mb-0">رسیدوں، پی ڈی ایف اور لاگ ان پیج پر یہ لوگو ظاہر ہوگا۔ (PNG یا JPG منتخب کریں)</p>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="uploadStoreLogo()">
+                            <button type="button" class="btn btn-outline-primary fw-bold btn-sm px-3 py-2" onclick="document.getElementById('logoFileInput').click()">
+                                📁 نیا لوگو اپلوڈ کریں
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- سیٹنگز فارم -->
+                    <form id="storeSettingsForm" onsubmit="saveStoreSettings(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">دکان کا نام (اردو):</label>
+                                <input type="text" class="form-control fw-bold" name="store_name_ur" value="{{ store.store_name_ur }}" required placeholder="مثلاً: المدینہ سپر اسٹور">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">دکان کا نام (English):</label>
+                                <input type="text" class="form-control fw-bold" name="store_name_en" value="{{ store.store_name_en }}" required placeholder="e.g. Al-Madina Super Store" dir="ltr">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">رابطہ نمبر 1 (Phone / WhatsApp):</label>
+                                <input type="text" class="form-control font-monospace" name="phone1" value="{{ store.phone1 }}" required placeholder="0300-1234567" dir="ltr">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">رابطہ نمبر 2 (اختیاری):</label>
+                                <input type="text" class="form-control font-monospace" name="phone2" value="{{ store.phone2 }}" placeholder="0321-7654321" dir="ltr">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">دکان کا پتہ (اردو):</label>
+                                <input type="text" class="form-control" name="address_ur" value="{{ store.address_ur }}" placeholder="مثلاً: شاپ نمبر 12، مین مارکیٹ، لاہور">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">دکان کا پتہ (English):</label>
+                                <input type="text" class="form-control" name="address_en" value="{{ store.address_en }}" placeholder="Shop # 12, Main Market, Lahore" dir="ltr">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small">ٹیگ لائن یا کاروبار کی تفصیل (Tagline):</label>
+                                <input type="text" class="form-control" name="tagline" value="{{ store.tagline }}" placeholder="مثلاً: Retail & Wholesale General Merchant">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small">رسید کے نیچے کا پیغام (Invoice Footer Note):</label>
+                                <input type="text" class="form-control" name="invoice_footer" value="{{ store.invoice_footer }}" placeholder="مثلاً: آپ کے تعاون کا شکریہ! خریدا گیا مال تبدیل ہو سکتا ہے۔">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-2 border-top d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary fw-bold px-4 py-2" id="btnSaveSettings">
+                                💾 سیٹنگز محفوظ کریں (Save Settings)
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- دائیں کالم: لائسنس کی معلومات -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-dark text-white py-3 px-4 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold fs-6">🔒 لائسنس سیکیورٹی (License Status)</span>
+                    {% if license_info.is_valid %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Locked</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold mb-1">کمپیوٹر مشین آئی ڈی (Machine ID):</label>
+                        <div class="input-group" dir="ltr">
+                            <input type="text" class="form-control font-monospace fw-bold bg-light" id="midField" value="{{ license_info.machine_id }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copySettingsMid()">کاپی</button>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.76rem;">یہ کوڈ اس کمپیوٹر کا مخصوص ہارڈویئر فنگر پرنٹ ہے۔</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold mb-1">لائسنس کی حیثیت:</label>
+                        <div>
+                            {% if license_info.status == 'lifetime' %}
+                                <span class="badge bg-success-subtle text-success border border-success px-3 py-2 fs-6 fw-bold w-100">
+                                    ✓ لائف ٹائم لائسنس فعال ہے
+                                </span>
+                            {% elif license_info.status == 'trial' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning px-3 py-2 fs-6 fw-bold w-100">
+                                    ⏳ ٹرائل ایکٹیو ({{ license_info.message }})
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fs-6 fw-bold w-100">
+                                    ✕ لائسنس غیر فعال ہے
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if store.license_key %}
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold mb-1">ایکٹیویٹ شدہ کی (Active Key):</label>
+                        <div class="font-monospace small p-2 bg-light rounded text-truncate border" dir="ltr">
+                            {{ store.license_key }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 pt-3 border-top">
+                        <a href="/license" class="btn btn-outline-dark btn-sm w-100 fw-bold py-2">
+                            🔑 نیا لائسنس کوڈ درج کریں ➔
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- معلوماتی کارڈ -->
+            <div class="card border-0 bg-primary-subtle text-primary-emphasis rounded-4 p-3 shadow-sm">
+                <div class="d-flex gap-2">
+                    <span class="fs-4">💡</span>
+                    <div class="small">
+                        <strong>خودکار برانڈنگ کی سہولت:</strong> یہاں جو بھی نام یا لوگو سیو کریں گے، وہ تھرمل رسیدوں، اے فور بلز، لاگ ان ونڈو اور واٹس ایپ پیغامات میں خود بخود اپ ڈیٹ ہو جائے گا۔
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copySettingsMid() {
+    const field = document.getElementById('midField');
+    navigator.clipboard.writeText(field.value).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'مشین آئی ڈی کاپی ہو گئی!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+}
+
+function saveStoreSettings(e) {
+    e.preventDefault();
+    const form = document.getElementById('storeSettingsForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    const btn = document.getElementById('btnSaveSettings');
+    btn.disabled = true;
+    btn.innerText = 'محفوظ ہو رہا ہے...';
+
+    fetch('/api/settings/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        btn.disabled = false;
+        btn.innerText = '💾 سیٹنگز محفوظ کریں (Save Settings)';
+        if (res.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'کامیابی!',
+                text: 'اسٹور کی تفصیلات کامیابی سے اپ ڈیٹ ہو گئی ہیں۔',
+                timer: 1800,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'خرابی',
+                text: res.message || 'سیٹنگز محفوظ نہ ہو سکیں۔'
+            });
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerText = '💾 سیٹنگز محفوظ کریں (Save Settings)';
+        Swal.fire({ icon: 'error', title: 'خرابی', text: 'سرور سے رابطہ نہ ہو سکا۔' });
+    });
+}
+
+function uploadStoreLogo() {
+    const input = document.getElementById('logoFileInput');
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('logo_file', file);
+
+    Swal.fire({
+        title: 'لوگو اپلوڈ ہو رہا ہے...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    fetch('/api/settings/logo', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            document.getElementById('logoPreview').src = res.logo_url;
+            Swal.fire({
+                icon: 'success',
+                title: 'لوگو اپلوڈ ہو گیا!',
+                text: 'نیا لوگو تمام رسیدوں اور اسکرینز پر سیٹ ہو چکا ہے۔',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'اپلوڈ ناکام',
+                text: res.message || 'تصویر اپلوڈ نہیں ہو سکی۔'
+            });
+        }
+    })
+    .catch(err => {
+        Swal.fire({ icon: 'error', title: 'خرابی', text: 'سرور سے رابطہ نہ ہو سکا۔' });
+    });
+}
+</script>
+{% endblock %}

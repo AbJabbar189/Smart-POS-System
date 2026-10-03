@@ -124,14 +124,14 @@
 
     <div class="invoice-box">
         <div class="header text-center">
-            <img src="{{ url_for('static', filename='img/jbs_logo_raw.png') }}" alt="JBS" style="max-height: 44px; margin-bottom: 3px;">
-            <h2 style="margin: 2px 0 0 0; font-size: 18px; font-weight: 800;">اسمارٹ پی او ایس</h2>
-            <div class="fw-bold" style="font-size: 12px; letter-spacing: 0.5px;">SMART POS SYSTEM</div>
-            <p style="font-weight: 700; margin: 3px 0 1px 0; font-size: 11px;">مین مارکیٹ، لاہور</p>
-            <p style="font-size: 10px; margin: 0 0 2px 0;">Main Market, Lahore</p>
+            <img src="{{ store.logo_path or url_for('static', filename='img/jbs_logo_raw.png') }}" alt="Store Logo" style="max-height: 48px; margin-bottom: 3px;">
+            <h2 style="margin: 2px 0 0 0; font-size: 18px; font-weight: 800;">{{ store.store_name_ur }}</h2>
+            <div class="fw-bold" style="font-size: 12px; letter-spacing: 0.5px;">{{ store.store_name_en }}</div>
+            <p style="font-weight: 700; margin: 3px 0 1px 0; font-size: 11px;">{{ store.address_ur }}</p>
+            <p style="font-size: 10px; margin: 0 0 2px 0;">{{ store.address_en }}</p>
             <div style="text-align: center; margin: 3px 0 2px 0;" dir="rtl">
                 <span style="display: inline-block; white-space: nowrap; margin: 0 4px;">
-                    <span class="urdu-owner-name">فون نمبر:</span>&nbsp;<bdi dir="ltr" class="owner-phone">0300-0000000</bdi>
+                    <span class="urdu-owner-name">فون نمبر:</span>&nbsp;<bdi dir="ltr" class="owner-phone">{{ store.phone1 }}{% if store.phone2 %} | {{ store.phone2 }}{% endif %}</bdi>
                 </span>
             </div>
         </div>
@@ -254,7 +254,7 @@
         <div class="double-divider"></div>
 
         <div class="text-center" style="font-size: 11px; margin-top: 6px;">
-            <div>Exchange is possible within 3 days with this original receipt.</div>
+            <div>{{ store.invoice_footer or 'Exchange is possible within 3 days with this original receipt.' }}</div>
             <div class="fw-bold" style="margin-top: 3px;">Thank You For Your Business!</div>
         </div>
     </div>
