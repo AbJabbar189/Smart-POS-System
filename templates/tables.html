@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-3 px-md-4">
+    <!-- Header with Title, Stats, and Action Buttons -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span style="font-size: 1.8rem;">🍽️</span>
+                <span class="lang-text" data-en="Dining Tables & Cabins Floor Plan" data-ur="ڈائن ان ٹیبلز اور فیملی کیبنز فلور پلان">ڈائن ان ٹیبلز اور فیملی کیبنز فلور پلان</span>
+            </h3>
+            <p class="text-muted small mb-0 lang-text" data-en="Real-time restaurant table occupancy, active running orders, and KOT management." data-ur="ریسٹورنٹ ٹیبلز کی لائیو صورتحال، جاری آرڈرز اور کچن ٹکٹس کا کنٹرول۔">ریسٹورنٹ ٹیبلز کی لائیو صورتحال، جاری آرڈرز اور کچن ٹکٹس کا کنٹرول۔</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-primary fw-bold d-flex align-items-center gap-2" onclick="location.reload()">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+                <span class="lang-text" data-en="Refresh Floor" data-ur="ریفریش کریں">ریفریش کریں</span>
+            </button>
+            <button class="btn btn-primary fw-bold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                <span class="lang-text" data-en="+ Add Table / Cabin" data-ur="+ نئی ٹیبل / کیبن شامل کریں">+ نئی ٹیبل / کیبن شامل کریں</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 4 Stats Cards Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-bold lang-text" data-en="Total Tables" data-ur="کل ٹیبلز / کیبنز">کل ٹیبلز / کیبنز</div>
+                        <div class="fs-4 fw-bold font-monospace mt-1">{{ stats.total }}</div>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M3 2a2 2 0 0 0-2 2v1h14V4a2 2 0 0 0-2-2H3zm12 4H1v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6zM2 14v1a1 1 0 0 0 2 0v-1h8v1a1 1 0 0 0 2 0v-1h-1a1 1 0 0 1-1-1v-1H4v1a1 1 0 0 1-1 1H2z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-bold lang-text" data-en="Available (Free)" data-ur="خالی ٹیبلز (دستیاب)">خالی ٹیبلز (دستیاب)</div>
+                        <div class="fs-4 fw-bold text-success font-monospace mt-1">{{ stats.available }}</div>
+                    </div>
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-bold lang-text" data-en="Occupied (Dining)" data-ur="کھانا جاری (مصروف)">کھانا جاری (مصروف)</div>
+                        <div class="fs-4 fw-bold text-danger font-monospace mt-1">{{ stats.occupied }}</div>
+                    </div>
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-2 text-danger">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3.5a.5.5 0 0 1-.5-.5v-4A.5.5 0 0 1 8 4z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-bold lang-text" data-en="Active Running Bills" data-ur="فلور پر جاری بلز">فلور پر جاری بلز</div>
+                        <div class="fs-4 fw-bold text-warning font-monospace mt-1">Rs. {{ "{:,.0f}".format(stats.floor_sales) }}</div>
+                    </div>
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-2 text-warning">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1H1zm7 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M0 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V5zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V7a2 2 0 0 1-2-2H3z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Filter Tabs -->
+    <div class="card border-0 shadow-sm rounded-4 p-2 mb-4 bg-white">
+        <ul class="nav nav-pills gap-2" id="floorSectionTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold px-3 py-2 rounded-3 filter-tab-btn" onclick="filterTables('all')">
+                    <span class="lang-text" data-en="All Tables" data-ur="تمام ٹیبلز">تمام ٹیبلز</span> ({{ stats.total }})
+                </button>
+            </li>
+            {% for sec in sections %}
+            <li class="nav-item">
+                <button class="nav-link fw-bold px-3 py-2 rounded-3 filter-tab-btn" onclick="filterTables('{{ sec }}')">
+                    {{ sec }}
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Tables Grid -->
+    <div class="row g-3" id="tablesContainer">
+        {% for t in tables %}
+        <div class="col-12 col-sm-6 col-md-4 col-xl-3 table-item-card" data-section="{{ t.section }}" data-status="{{ t.status }}">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative table-box {% if t.status == 'occupied' %}table-occupied{% elif t.status == 'billed' %}table-billed{% else %}table-available{% endif %}">
+                <!-- Top Status Header Stripe -->
+                <div class="p-3 d-flex justify-content-between align-items-center card-top-stripe">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="table-icon">
+                            {% if 'Cabin' in t.table_number or 'Room' in t.table_number %}🚪{% elif 'Roof' in t.table_number %}⛱️{% else %}🍽️{% endif %}
+                        </span>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">{{ t.table_number }}</h5>
+                            <span class="text-muted" style="font-size: 0.78rem;">{{ t.section }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        {% if t.status == 'occupied' %}
+                        <span class="badge bg-danger rounded-pill px-3 py-1 shadow-sm lang-text" data-en="Occupied" data-ur="کھانا جاری">🔴 کھانا جاری</span>
+                        {% elif t.status == 'billed' %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 shadow-sm lang-text" data-en="Bill Requested" data-ur="بل طلب شدہ">🟡 بل طلب شدہ</span>
+                        {% else %}
+                        <span class="badge bg-success rounded-pill px-3 py-1 shadow-sm lang-text" data-en="Available" data-ur="خالی / دستیاب">🟢 دستیاب</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body p-3 d-flex flex-column justify-content-between">
+                    <!-- Capacity & Running Bill Details -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">
+                                🪑 گنجائش: <strong class="text-dark">{{ t.capacity }} افراد</strong>
+                            </span>
+                            {% if t.status in ('occupied', 'billed') %}
+                            <span class="text-muted font-monospace small" style="font-size: 0.75rem;">
+                                {{ t.updated_at.split(' ')[1] if ' ' in t.updated_at else t.updated_at }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if t.status in ('occupied', 'billed') %}
+                        <div class="p-2 rounded-3 bg-light border text-center my-2">
+                            <div class="text-muted small fw-bold lang-text" data-en="Running Bill" data-ur="جاری بل">جاری بل</div>
+                            <div class="fs-4 fw-bold text-danger font-monospace">Rs. {{ "{:,.0f}".format(t.current_amount or 0) }}</div>
+                        </div>
+                        {% else %}
+                        <div class="p-2 rounded-3 bg-light border text-center my-2 opacity-75">
+                            <span class="text-success small fw-bold">نئے کسٹمرز کے لیے دستیاب ہے</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-2 border-top">
+                        {% if t.status == 'available' %}
+                        <a href="/pos?table_id={{ t.id }}&table_number={{ t.table_number }}&order_type=dine_in" class="btn btn-primary w-100 py-2 fw-bold rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                            <span class="lang-text" data-en="New Order" data-ur="نیا آرڈر لیں">نیا آرڈر لیں</span>
+                        </a>
+                        {% else %}
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm flex-fill fw-bold py-2 rounded-3" onclick="viewTableOrder({{ t.id }})" title="آرڈر کی تفصیل دیکھیں">
+                                    👁️ بل دیکھیں
+                                </button>
+                                {% if store.enable_kot and t.current_sale_id %}
+                                <a href="/receipt/kot/{{ t.current_sale_id }}" target="_blank" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold py-2 rounded-3" title="کچن سلپ پرنٹ کریں">
+                                    👨‍🍳 پرنٹ KOT
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm flex-fill fw-bold py-2 rounded-3 shadow-sm" onclick="openSettleModal({{ t.id }}, '{{ t.table_number }}', {{ t.current_amount or 0 }})">
+                                    💵 بل وصولی (Settle)
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 rounded-3" onclick="releaseTable({{ t.id }})" title="ٹیبل فوراً خالی کریں">
+                                    🔄
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal: Add New Table or Cabin -->
+<div class="modal fade" id="addTableModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">➕ نئی ٹیبل یا فیملی روم شامل کریں</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addTableForm" onsubmit="submitAddTable(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">ٹیبل / کیبن کا نام یا نمبر:</label>
+                        <input type="text" id="newTableNumber" class="form-control fw-bold" placeholder="مثلاً: Table 5 یا Cabin 3" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">سیکشن / جگہ (Floor Section):</label>
+                        <select id="newTableSection" class="form-select fw-bold">
+                            <option value="Main Hall (مین ہال)">Main Hall (مین ہال)</option>
+                            {% if store.enable_rooms %}
+                            <option value="Family Rooms (فیملی کیبن)">Family Rooms (فیملی کیبن)</option>
+                            <option value="VIP Lounge (وی آئی پی روم)">VIP Lounge (وی آئی پی روم)</option>
+                            {% endif %}
+                            <option value="Rooftop (روف ٹاپ)">Rooftop (روف ٹاپ)</option>
+                            <option value="Outdoor / Lawn (اوپن لان)">Outdoor / Lawn (اوپن لان)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">بیٹھنے کی گنجائش (افراد کی تعداد):</label>
+                        <input type="number" id="newTableCapacity" class="form-control font-monospace fw-bold" value="4" min="1" max="50">
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light fw-bold px-3" data-bs-dismiss="modal">منسوخ</button>
+                        <button type="submit" class="btn btn-primary fw-bold px-4" id="btnSaveTable">محفوظ کریں</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: View Table Order Details -->
+<div class="modal fade" id="tableOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="orderModalTitle">🍽️ ٹیبل آرڈر کی تفصیلات</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="orderModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0" id="orderModalFooter">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">بند کریں</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Quick Settle Table Bill -->
+<div class="modal fade" id="settleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">💵 بل وصولی اور ٹیبل ریلیز</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="settleTableId">
+                <div class="p-3 rounded-3 bg-light border text-center mb-3">
+                    <h6 class="text-muted mb-1" id="settleTableLabel">Table 1</h6>
+                    <div class="fs-3 fw-bold text-success font-monospace" id="settleTotalLabel">Rs. 0</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">وصول شدہ رقم (Paid Amount):</label>
+                    <input type="number" step="any" id="settlePaidAmount" class="form-control font-monospace fw-bold fs-5 text-success" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">طریقہ ادائیگی (Payment Mode):</label>
+                    <select id="settlePayMethod" class="form-select fw-bold">
+                        <option value="Cash">Cash (نقد)</option>
+                        <option value="Online">Online / Card (آن لائن / کارڈ)</option>
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light fw-bold px-3" data-bs-dismiss="modal">منسوخ</button>
+                    <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmSettle()">
+                        ✅ ادائیگی وصول کریں اور ٹیبل خالی کریں
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-box {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e2e8f0 !important;
+}
+.table-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.08) !important;
+}
+.table-available .card-top-stripe {
+    background-color: #f0fdf4;
+    border-bottom: 2px solid #22c55e;
+}
+.table-occupied .card-top-stripe {
+    background-color: #fef2f2;
+    border-bottom: 2px solid #ef4444;
+}
+.table-billed .card-top-stripe {
+    background-color: #fffbeb;
+    border-bottom: 2px solid #f59e0b;
+}
+.table-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+.filter-tab-btn {
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.filter-tab-btn.active {
+    background-color: #0284c7 !important;
+    color: #fff !important;
+    border-color: #0284c7 !important;
+}
+</style>
+
+<script>
+function filterTables(section) {
+    document.querySelectorAll('.filter-tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    const cards = document.querySelectorAll('.table-item-card');
+    cards.forEach(card => {
+        if (section === 'all' || card.getAttribute('data-section') === section) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function submitAddTable(e) {
+    e.preventDefault();
+    const table_number = document.getElementById('newTableNumber').value.trim();
+    const section = document.getElementById('newTableSection').value;
+    const capacity = parseInt(document.getElementById('newTableCapacity').value) || 4;
+
+    const btn = document.getElementById('btnSaveTable');
+    btn.disabled = true;
+
+    fetch('/api/tables/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table_number, section, capacity })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('خرابی: ' + data.message);
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        alert('سرور سے رابطہ نہیں ہو سکا');
+    });
+}
+
+function releaseTable(tableId) {
+    if (!confirm('کیا آپ واقعی اس ٹیبل کو فارغ (خالی) کرنا چاہتے ہیں؟')) return;
+
+    fetch(`/api/tables/release/${tableId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function openSettleModal(tableId, tableNumber, currentAmount) {
+    document.getElementById('settleTableId').value = tableId;
+    document.getElementById('settleTableLabel').innerText = tableNumber;
+    document.getElementById('settleTotalLabel').innerText = 'Rs. ' + Number(currentAmount).toLocaleString();
+    document.getElementById('settlePaidAmount').value = currentAmount;
+    new bootstrap.Modal(document.getElementById('settleModal')).show();
+}
+
+function confirmSettle() {
+    const tableId = document.getElementById('settleTableId').value;
+    const paidAmount = parseFloat(document.getElementById('settlePaidAmount').value) || 0;
+    const payMethod = document.getElementById('settlePayMethod').value;
+
+    fetch(`/api/tables/${tableId}/settle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paid_amount: paidAmount, payment_method: payMethod })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function viewTableOrder(tableId) {
+    const modal = new bootstrap.Modal(document.getElementById('tableOrderModal'));
+    modal.show();
+    document.getElementById('orderModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
+
+    fetch(`/api/tables/${tableId}/order`)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success || !data.sale) {
+            document.getElementById('orderModalBody').innerHTML = '<div class="alert alert-warning">کوئی فعال آرڈر نہیں ملا</div>';
+            return;
+        }
+
+        const sale = data.sale;
+        const items = data.items;
+        document.getElementById('orderModalTitle').innerHTML = `🍽️ آرڈر بل: ${data.table.table_number} (${sale.invoice_no})`;
+
+        let rowsHtml = '';
+        items.forEach((it, idx) => {
+            rowsHtml += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td class="fw-bold">${it.product_name}</td>
+                    <td class="font-monospace text-center">${it.quantity} ${it.unit || ''}</td>
+                    <td class="font-monospace text-end">Rs. ${Number(it.price).toLocaleString()}</td>
+                    <td class="font-monospace text-end fw-bold">Rs. ${Number(it.total).toLocaleString()}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('orderModalBody').innerHTML = `
+            <div class="d-flex justify-content-between mb-3 text-muted small">
+                <span>وقت: <strong>${sale.date}</strong></span>
+                <span>گاہک: <strong>${sale.customer_name}</strong></span>
+                <span>KOT نمبر: <strong class="badge bg-secondary">${sale.kot_number || 'N/A'}</strong></span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 40px;">#</th>
+                            <th>پروڈکٹ / آئٹم</th>
+                            <th class="text-center">تعداد</th>
+                            <th class="text-end">ریٹ</th>
+                            <th class="text-end">ٹوٹل</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                    <tfoot class="table-light font-monospace fw-bold">
+                        <tr>
+                            <td colspan="4" class="text-end">کل رقم (Grand Total):</td>
+                            <td class="text-end text-primary fs-5">Rs. ${Number(sale.total).toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('orderModalFooter').innerHTML = `
+            <a href="/receipt/${sale.id}" target="_blank" class="btn btn-outline-success fw-bold">🖨️ فائنل بل پرنٹ</a>
+            ${sale.kot_number ? `<a href="/receipt/kot/${sale.id}" target="_blank" class="btn btn-warning text-dark fw-bold">👨‍🍳 KOT پرنٹ</a>` : ''}
+            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">بند کریں</button>
+        `;
+    });
+}
+</script>
+{% endblock %}

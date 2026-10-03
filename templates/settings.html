@@ -87,9 +87,210 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 pt-2 border-top d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary fw-bold px-4 py-2" id="btnSaveSettings">
-                                💾 سیٹنگز محفوظ کریں (Save Settings)
+                        <!-- 🌟 YusrTEC Modular Architecture: Business Mode & Feature Switches -->
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                                        <span>⚡</span>
+                                        <span>کاروبار کا موڈ اور ماڈیولر فیچرز (Modular Architecture)</span>
+                                    </h5>
+                                    <span class="text-muted small">اپنی نوعیت کے مطابق سافٹ ویئر کے فیچرز آن یا آف کریں۔ جو فیچر آف ہوگا وہ سسٹم میں نظر نہیں آئے گا۔</span>
+                                </div>
+                                <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold" id="badgeCurrentMode">
+                                    {{ store.business_type|upper or 'RETAIL' }}
+                                </span>
+                            </div>
+
+                            <!-- 1-Click Business Profile Presets -->
+                            <div class="p-3 rounded-4 mb-3" style="background: #f1f5f9; border: 1px solid #cbd5e1;">
+                                <label class="form-label fw-bold small text-dark mb-2">🎯 فوری پروفائل منتخب کریں (1-Click Presets):</label>
+                                <input type="hidden" name="business_type" id="businessTypeInput" value="{{ store.business_type or 'retail' }}">
+                                <div class="row g-2">
+                                    <div class="col-6 col-md-3">
+                                        <button type="button" class="btn w-100 py-2 fw-bold text-start preset-btn {% if store.business_type == 'retail' or not store.business_type %}btn-primary active{% else %}btn-outline-secondary{% endif %}" onclick="applyPreset('retail')">
+                                            🛒 جنرل ریٹیل و کریانہ<br>
+                                            <small class="fw-normal opacity-75" style="font-size: 0.72rem;">بارکوڈ، کھاتہ، اخراجات</small>
+                                        </button>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <button type="button" class="btn w-100 py-2 fw-bold text-start preset-btn {% if store.business_type == 'restaurant' %}btn-primary active{% else %}btn-outline-secondary{% endif %}" onclick="applyPreset('restaurant')">
+                                            🍽️ ریسٹورنٹ و فوڈ<br>
+                                            <small class="fw-normal opacity-75" style="font-size: 0.72rem;">ٹیبلز، KOT، کیبنز، ڈلیوری</small>
+                                        </button>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <button type="button" class="btn w-100 py-2 fw-bold text-start preset-btn {% if store.business_type == 'bakery' %}btn-primary active{% else %}btn-outline-secondary{% endif %}" onclick="applyPreset('bakery')">
+                                            🍰 بیکری و مٹھائی شاپ<br>
+                                            <small class="fw-normal opacity-75" style="font-size: 0.72rem;">وزن/Kg اسکیل، ڈلیوری</small>
+                                        </button>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <button type="button" class="btn w-100 py-2 fw-bold text-start preset-btn {% if store.business_type == 'custom' %}btn-primary active{% else %}btn-outline-secondary{% endif %}" onclick="applyPreset('custom')">
+                                            ⚙️ کسٹم سیٹنگز<br>
+                                            <small class="fw-normal opacity-75" style="font-size: 0.72rem;">اپنی مرضی کے بٹن</small>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Feature Toggles Grid -->
+                            <div class="row g-3">
+                                <!-- 1. Dining Tables -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>🍽️</span> <span>ڈائن ان اور ٹیبلز (Dining Tables)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">ریسٹورنٹ کے ہال اور ٹیبلز پر جاری آرڈرز سنبھالنے کے لیے</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_tables" id="sw_tables" {% if store.enable_tables %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Family Cabins / Rooms -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>🚪</span> <span>فیملی کیبنز و پرائیویٹ رومز (Cabins)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">پردہ دار فیملی رومز یا وی آئی پی کیبنز کا فلور پلان</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_rooms" id="sw_rooms" {% if store.enable_rooms %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. KOT Kitchen Ticket -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>👨‍🍳</span> <span>کچن آرڈر ٹکٹ (KOT Slip)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">کک / شیف کے لیے بغیر پیسوں والا کچن ٹکٹ پرنٹ کریں</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_kot" id="sw_kot" {% if store.enable_kot %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. Home Delivery & Takeaway -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>🛵</span> <span>ہوم ڈلیوری اور پارسل (Delivery)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">رائیڈر کا نام اور ڈلیوری چارجز بل میں شامل کریں</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_delivery" id="sw_delivery" {% if store.enable_delivery %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 5. Weight Scale / Kg Pricing -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>⚖️</span> <span>وزنی اسکیل و فریکشنل ریٹ (Weight Scale)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">مٹھائی، بیکری، گوشت، اور پھلوں کے لیے 250 گرام، آدھا کلو ریٹ</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_weight" id="sw_weight" {% if store.enable_weight %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 6. Barcode Scanner Support -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>🏷️</span> <span>بارکوڈ اسکینر سپورٹ (Barcode Scanner)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">اسکینر سے خودکار پروڈکٹ تلاش اور لیبل پرنٹنگ</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_barcode" id="sw_barcode" {% if store.enable_barcode %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 7. Customer Ledgers / Udhaar Khata -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>📒</span> <span>گاہکوں کا ادھار کھاتہ (Khata Ledgers)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">ادھار بلنگ، لیجرز، اور کسٹمر وصولی کنٹرول</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_khata" id="sw_khata" {% if store.enable_khata %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 8. Suppliers & Payables -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>🚚</span> <span>سپلائرز کھاتہ اور خریداری (Suppliers)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">مال سپلائی کرنے والوں کا حساب اور ادائیگی</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_suppliers" id="sw_suppliers" {% if store.enable_suppliers %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 9. Daily Expenses -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>💸</span> <span>دکان کے اخراجات (Daily Expenses)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">چائے پانی، کرایہ، بلز اور روزانہ کے دیگر خرچے</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_expenses" id="sw_expenses" {% if store.enable_expenses %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 10. Quotations & Estimates -->
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between h-100">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>📑</span> <span>تخمینہ ریٹ و کوٹیشنز (Quotations)</span>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.76rem;">گاہک کو مال کی خریداری سے پہلے کچا ایسٹیمیٹ دینا</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input modular-switch" type="checkbox" name="enable_quotations" id="sw_quotations" {% if store.enable_quotations %}checked{% endif %} onchange="onSwitchChange()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary fw-bold px-4 py-2 shadow-sm" id="btnSaveSettings">
+                                💾 تمام ترتیبات محفوظ کریں (Save All Settings)
                             </button>
                         </div>
                     </form>
@@ -180,11 +381,81 @@ function copySettingsMid() {
     });
 }
 
+function applyPreset(mode) {
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.remove('btn-primary', 'active');
+        btn.classList.add('btn-outline-secondary');
+    });
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.remove('btn-outline-secondary');
+        window.event.currentTarget.classList.add('btn-primary', 'active');
+    }
+
+    document.getElementById('businessTypeInput').value = mode;
+    document.getElementById('badgeCurrentMode').innerText = mode.toUpperCase();
+
+    const setSw = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = val;
+    };
+
+    if (mode === 'retail') {
+        setSw('sw_tables', false);
+        setSw('sw_rooms', false);
+        setSw('sw_kot', false);
+        setSw('sw_delivery', true);
+        setSw('sw_weight', false);
+        setSw('sw_barcode', true);
+        setSw('sw_khata', true);
+        setSw('sw_suppliers', true);
+        setSw('sw_expenses', true);
+        setSw('sw_quotations', true);
+    } else if (mode === 'restaurant') {
+        setSw('sw_tables', true);
+        setSw('sw_rooms', true);
+        setSw('sw_kot', true);
+        setSw('sw_delivery', true);
+        setSw('sw_weight', false);
+        setSw('sw_barcode', false);
+        setSw('sw_khata', false);
+        setSw('sw_suppliers', true);
+        setSw('sw_expenses', true);
+        setSw('sw_quotations', false);
+    } else if (mode === 'bakery') {
+        setSw('sw_tables', false);
+        setSw('sw_rooms', false);
+        setSw('sw_kot', false);
+        setSw('sw_delivery', true);
+        setSw('sw_weight', true);
+        setSw('sw_barcode', true);
+        setSw('sw_khata', true);
+        setSw('sw_suppliers', true);
+        setSw('sw_expenses', true);
+        setSw('sw_quotations', false);
+    }
+}
+
+function onSwitchChange() {
+    document.getElementById('businessTypeInput').value = 'custom';
+    document.getElementById('badgeCurrentMode').innerText = 'CUSTOM';
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.remove('btn-primary', 'active');
+        btn.classList.add('btn-outline-secondary');
+    });
+}
+
 function saveStoreSettings(e) {
     e.preventDefault();
     const form = document.getElementById('storeSettingsForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
+
+    // Explicitly record all modular checkboxes (1 or 0)
+    const switches = ['enable_tables', 'enable_rooms', 'enable_kot', 'enable_delivery', 'enable_weight', 'enable_barcode', 'enable_khata', 'enable_suppliers', 'enable_expenses', 'enable_quotations'];
+    switches.forEach(s => {
+        const el = form.querySelector(`[name="${s}"]`);
+        data[s] = (el && el.checked) ? 1 : 0;
+    });
 
     const btn = document.getElementById('btnSaveSettings');
     btn.disabled = true;
@@ -198,12 +469,12 @@ function saveStoreSettings(e) {
     .then(r => r.json())
     .then(res => {
         btn.disabled = false;
-        btn.innerText = '💾 سیٹنگز محفوظ کریں (Save Settings)';
+        btn.innerText = '💾 تمام ترتیبات محفوظ کریں (Save All Settings)';
         if (res.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'کامیابی!',
-                text: 'اسٹور کی تفصیلات کامیابی سے اپ ڈیٹ ہو گئی ہیں۔',
+                text: 'اسٹور اور ماڈیولر فیچرز کامیابی سے محفوظ ہو گئے ہیں۔',
                 timer: 1800,
                 showConfirmButton: false
             }).then(() => {
@@ -219,7 +490,7 @@ function saveStoreSettings(e) {
     })
     .catch(err => {
         btn.disabled = false;
-        btn.innerText = '💾 سیٹنگز محفوظ کریں (Save Settings)';
+        btn.innerText = '💾 تمام ترتیبات محفوظ کریں (Save All Settings)';
         Swal.fire({ icon: 'error', title: 'خرابی', text: 'سرور سے رابطہ نہ ہو سکا۔' });
     });
 }

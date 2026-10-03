@@ -2,6 +2,7 @@ import os
 import sys
 import hashlib
 import uuid
+from datetime import datetime, timedelta
 try:
     import winreg
 except ImportError:

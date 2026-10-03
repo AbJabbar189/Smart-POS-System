@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOT - {{ sale.kot_number or sale.invoice_no }}</title>
+    
+    <style>
+        @page {
+            size: 80mm auto;
+            margin: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Jameel Noori Nastaleeq", Tahoma, sans-serif;
+            width: 78mm;
+            margin: 0 auto;
+            padding: 8px 4px;
+            color: #000;
+            background: #fff;
+            line-height: 1.35;
+        }
+
+        .text-center { text-align: center; }
+        .text-end { text-align: left; } /* in RTL, text-end is left */
+        .text-start { text-align: right; }
+
+        .divider {
+            border-top: 1.5px dashed #000;
+            margin: 6px 0;
+        }
+
+        .divider-double {
+            border-top: 2.5px solid #000;
+            margin: 6px 0;
+        }
+
+        .kot-header {
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-banner {
+            background: #000;
+            color: #fff;
+            padding: 6px 4px;
+            margin: 6px 0;
+            border-radius: 4px;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        table.items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        table.items-table th {
+            border-bottom: 1.5px solid #000;
+            padding: 4px 2px;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        table.items-table td {
+            padding: 5px 2px;
+            font-size: 13px;
+            vertical-align: middle;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .item-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .item-qty {
+            font-size: 16px;
+            font-weight: 900;
+            text-align: center;
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        @media print {
+            body {
+                width: 100%;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="margin-bottom: 10px; text-align: center;">
+        <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; background: #0284c7; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+            🖨️ KOT پرنٹ کریں (Print)
+        </button>
+        <button onclick="window.close()" style="padding: 8px 12px; font-weight: bold; background: #64748b; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-right: 5px;">
+            بند کریں (Close)
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center">
+        <div style="font-size: 14px; font-weight: bold;">{{ store.store_name_ur or store.store_name_en }}</div>
+        <div class="kot-header">👨‍🍳 کچن آرڈر ٹکٹ (K.O.T)</div>
+    </div>
+
+    <!-- Big Table Banner -->
+    <div class="table-banner">
+        {% if sale.table_number %}
+            🍽️ {{ sale.table_number|upper }}
+        {% elif sale.order_type == 'takeaway' %}
+            🥡 TAKEAWAY / پارسل
+        {% elif sale.order_type == 'delivery' %}
+            🛵 HOME DELIVERY / ڈلیوری
+        {% else %}
+            🛒 COUNTER ORDER
+        {% endif %}
+    </div>
+
+    <!-- Meta Details -->
+    <div class="meta-row">
+        <span>ٹوکن / KOT نمبر:</span>
+        <strong style="font-size: 13px;">{{ sale.kot_number or ('KOT-' ~ sale.id) }}</strong>
+    </div>
+    <div class="meta-row">
+        <span>وقت و تاریخ:</span>
+        <span>{{ sale.date }}</span>
+    </div>
+    <div class="meta-row">
+        <span>آرڈر کی قسم:</span>
+        <strong style="text-transform: uppercase;">{{ sale.order_type or 'Dine-In' }}</strong>
+    </div>
+    {% if sale.rider_name %}
+    <div class="meta-row">
+        <span>رائیڈر / ڈلیوری بوائے:</span>
+        <strong>{{ sale.rider_name }}</strong>
+    </div>
+    {% endif %}
+    <div class="meta-row">
+        <span>بل نمبر (Ref):</span>
+        <span style="font-family: monospace;">{{ sale.invoice_no }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Items List for Chef -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 25px; text-align: center;">#</th>
+                <th>کھانا / آئٹم کا نام</th>
+                <th style="width: 60px; text-align: center;">تعداد (Qty)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for it in items %}
+            <tr>
+                <td style="text-align: center; font-size: 12px; color: #555;">{{ loop.index }}</td>
+                <td class="item-name">
+                    {{ it.product_name }}
+                    {% if it.unit and it.unit != 'Pcs' %}
+                        <span style="font-size: 11px; font-weight: normal; color: #444;">({{ it.unit }})</span>
+                    {% endif %}
+                </td>
+                <td class="item-qty">
+                    [ {{ it.quantity }} ]
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="divider-double"></div>
+
+    <div class="meta-row" style="font-size: 12px; font-weight: bold;">
+        <span>کل آئٹمز کی تعداد:</span>
+        <span style="font-size: 14px;">{{ items|length }} Items</span>
+    </div>
+
+    <div class="footer-note">
+        * کچن میں تیاری کے لیے فوری ٹکٹ *<br>
+        Powered by YusrTEC POS
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 300);
+        };
+    </script>
+</body>
+</html>

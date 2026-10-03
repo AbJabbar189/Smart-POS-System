@@ -270,6 +270,25 @@
                     </select>
                 </div>
             </div>
+
+            <!-- ⚖️ فوری وزنی پیمانہ (Quick Weight Scale for Bakery, Sweets & Meat) -->
+            {% if store.enable_weight %}
+            <div class="mb-3 p-2 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-bold text-muted">⚖️ فوری وزنی پیمانہ (Quick Weight Scale):</span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.125)">125g</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.25)">250g (پاؤ)</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 font-monospace fw-bold" onclick="setFractionalQty(0.5)">500g (آدھا کلو)</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(0.75)">750g (تین پاؤ)</button>
+                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 font-monospace fw-bold" onclick="setFractionalQty(1.0)">1 Kg</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(1.5)">1.5 Kg</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 font-monospace" onclick="setFractionalQty(2.0)">2 Kg</button>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Weight field — only shown for Pcs-based products -->
             <div class="row g-2 mb-3" id="weightFieldRow" style="display:none;">
                 <div class="col-12">
@@ -291,6 +310,61 @@
             </button>
         </div>
 
+        <!-- 🍽️ Order Type & Restaurant Table Selector -->
+        {% if store.enable_tables or store.enable_delivery %}
+        <div class="pos-card mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 pos-card-title d-flex align-items-center gap-2">
+                    <span>🍽️</span>
+                    <span class="lang-text" data-en="Order Type & Table" data-ur="آرڈر کی قسم اور ٹیبل">Order Type & Table</span>
+                </h6>
+                <span id="activeOrderTypeBadge" class="badge bg-primary">{% if store.enable_tables %}Dine-In (ڈائن ان){% else %}Takeaway (پارسل){% endif %}</span>
+            </div>
+
+            <div class="btn-group w-100 mb-2" role="group">
+                {% if store.enable_tables %}
+                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeDineIn" value="dine_in" checked onchange="switchOrderType('dine_in')">
+                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeDineIn">🍽️ Dine-In</label>
+                {% endif %}
+
+                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeTakeaway" value="takeaway" {% if not store.enable_tables %}checked{% endif %} onchange="switchOrderType('takeaway')">
+                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeTakeaway">🥡 Takeaway</label>
+
+                {% if store.enable_delivery %}
+                <input type="radio" class="btn-check" name="posOrderType" id="orderTypeDelivery" value="delivery" onchange="switchOrderType('delivery')">
+                <label class="btn btn-outline-primary fw-bold py-1" for="orderTypeDelivery">🛵 Delivery</label>
+                {% endif %}
+            </div>
+
+            <!-- Dining Table Selector (Dine-In only) -->
+            {% if store.enable_tables %}
+            <div id="tableSelectorBox" class="mt-2">
+                <label class="form-label field-label mb-1 lang-text" data-en="Dining Table / Cabin:" data-ur="ڈائن ان ٹیبل یا فیملی روم:">Dining Table / Cabin:</label>
+                <select id="posTableSelect" class="form-select fw-bold shadow-none">
+                    <option value="">-- منتخب کریں (Select Table) --</option>
+                    {% for t in tables %}
+                    <option value="{{ t.id }}" data-number="{{ t.table_number }}">{{ t.table_number }} ({{ t.section }}) {% if t.status == 'occupied' %}🔴 کھانا جاری (Rs. {{ "{:,.0f}".format(t.current_amount or 0) }}){% elif t.status == 'billed' %}🟡 بل جاری{% else %}🟢 خالی{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- Rider & Delivery Charges (Delivery only) -->
+            {% if store.enable_delivery %}
+            <div id="deliveryInfoBox" class="row g-2 mt-1" style="display: none;">
+                <div class="col-7">
+                    <label class="form-label field-label mb-1 small lang-text" data-en="Rider Name:" data-ur="رائیڈر کا نام:">Rider Name:</label>
+                    <input type="text" id="posRiderName" class="form-control form-control-sm shadow-none" placeholder="مثلاً: علی رضا">
+                </div>
+                <div class="col-5">
+                    <label class="form-label field-label mb-1 small lang-text" data-en="Delivery Charges:" data-ur="ڈلیوری چارجز:">Delivery Charges:</label>
+                    <input type="number" id="posDeliveryCharges" class="form-control form-control-sm font-monospace fw-bold shadow-none" placeholder="0" oninput="updateTotals()">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <!-- سمارٹ کسٹمر باکس (Cash / Existing Credit / New Credit) -->
         <div class="pos-card">
             <h6 class="fw-bold mb-2 pos-card-title">
@@ -300,7 +374,8 @@
                 <span class="lang-text" data-en="Customer Details" data-ur="گاہک کی تفصیل">Customer Details</span>
             </h6>
 
-            <!-- کسٹمر ٹائپ کے 3 ٹیبز -->
+            <!-- کسٹمر ٹائپ کے 3 ٹیبز (صرف اگر کھاتہ آن ہو) -->
+            {% if store.enable_khata %}
             <div class="btn-group w-100 mb-3" role="group">
                 <input type="radio" class="btn-check" name="custType" id="typeCash" value="cash" checked onchange="switchCustType('cash')">
                 <label class="btn btn-outline-primary cust-tab-btn lang-text" for="typeCash" data-en="💵 Cash" data-ur="💵 نقد">💵 Cash</label>
@@ -311,6 +386,9 @@
                 <input type="radio" class="btn-check" name="custType" id="typeNew" value="new_credit" onchange="switchCustType('new_credit')">
                 <label class="btn btn-outline-primary cust-tab-btn lang-text" for="typeNew" data-en="➕ New Account" data-ur="➕ نیا کھاتہ">➕ New Account</label>
             </div>
+            {% else %}
+            <input type="hidden" name="custType" id="typeCash" value="cash">
+            {% endif %}
 
             <!-- 1. کیش گاہک -->
             <div id="boxCash">
@@ -540,7 +618,7 @@
                 </div>
             </div>
 
-            <!-- دو الگ الگ خوبصورت بٹن: صرف محفوظ کریں اور محفوظ و پرنٹ کریں -->
+            <!-- ایکشن بٹنز: KOT (اگر ریسٹورنٹ آن ہو) یا نارمل سیو و پرنٹ -->
             <div class="row g-2 mt-3">
                 <style>
                     .btn-save-modern { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.4); }
@@ -548,9 +626,33 @@
                     
                     .btn-print-modern { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); }
                     .btn-print-modern:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.5); color: white; }
+
+                    .btn-kot-modern { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4); }
+                    .btn-kot-modern:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(245, 158, 11, 0.5); color: white; }
                 </style>
+
+                {% if store.enable_kot %}
+                <div class="col-4">
+                    <button class="btn btn-kot-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(false, true)" title="کچن میں آرڈر بھیجیں اور KOT پرنٹ کریں">
+                        <span style="font-size: 1.3rem;">👨‍🍳</span>
+                        <span class="small lang-text" data-en="KOT (F8)" data-ur="KOT کچن ٹکٹ (F8)">KOT کچن ٹکٹ (F8)</span>
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-save-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(false, false)">
+                        <span style="font-size: 1.3rem;">💾</span>
+                        <span class="small lang-text" data-en="SAVE ONLY" data-ur="صرف محفوظ">صرف محفوظ</span>
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-print-modern w-100 py-3 d-flex flex-column align-items-center justify-content-center" onclick="saveSale(true, false)">
+                        <span style="font-size: 1.3rem;">🖨️</span>
+                        <span class="small lang-text" data-en="PRINT BILL (F9)" data-ur="بل پرنٹ کریں (F9)">بل پرنٹ کریں (F9)</span>
+                    </button>
+                </div>
+                {% else %}
                 <div class="col-6">
-                    <button class="btn btn-save-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(false)">
+                    <button class="btn btn-save-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(false, false)">
                         <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4.207a1 1 0 0 0-.293-.707l-2.5-2.5A1 1 0 0 0 10.5 1H2zm13 3.207V13a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8.5l3.5 3.5zM4.5 13a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-7zM5 12h6v-2H5v2z"/>
                         </svg>
@@ -558,7 +660,7 @@
                     </button>
                 </div>
                 <div class="col-6">
-                    <button class="btn btn-print-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(true)">
+                    <button class="btn btn-print-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(true, false)">
                         <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
                             <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
@@ -566,6 +668,7 @@
                         <span class="lang-text" data-en="SAVE & PRINT (F9)" data-ur="محفوظ اور پرنٹ کریں">SAVE & PRINT (F9)</span>
                     </button>
                 </div>
+                {% endif %}
             </div>
 
         </div>
@@ -1106,6 +1209,38 @@ function onDiscountAmountChange() {
     updateTotals();
 }
 
+let currentOrderType = 'dine_in';
+function switchOrderType(mode) {
+    currentOrderType = mode;
+    let badge = document.getElementById('activeOrderTypeBadge');
+    let tblBox = document.getElementById('tableSelectorBox');
+    let delBox = document.getElementById('deliveryInfoBox');
+
+    if (mode === 'dine_in') {
+        if (badge) { badge.className = 'badge bg-primary'; badge.innerText = 'Dine-In (ڈائن ان)'; }
+        if (tblBox) tblBox.style.display = 'block';
+        if (delBox) delBox.style.display = 'none';
+    } else if (mode === 'takeaway') {
+        if (badge) { badge.className = 'badge bg-info text-dark'; badge.innerText = 'Takeaway (پارسل)'; }
+        if (tblBox) tblBox.style.display = 'none';
+        if (delBox) delBox.style.display = 'none';
+    } else if (mode === 'delivery') {
+        if (badge) { badge.className = 'badge bg-warning text-dark'; badge.innerText = 'Delivery (ڈلیوری)'; }
+        if (tblBox) tblBox.style.display = 'none';
+        if (delBox) delBox.style.display = 'flex';
+    }
+    updateTotals();
+}
+
+function setFractionalQty(qty) {
+    let qEl = document.getElementById('itemQty');
+    if (qEl) {
+        qEl.value = qty;
+        qEl.focus();
+        calcPOSProfit();
+    }
+}
+
 function getCartTotal() {
     let subtotal = cart.reduce((sum, item) => sum + item.total, 0);
     let rate = parseFloat(document.getElementById('taxRateInput').value) || 0;
@@ -1116,7 +1251,11 @@ function getCartTotal() {
         taxAmt = parseFloat(document.getElementById('taxAmountInput').value) || 0;
     }
     let discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    return Math.max(0, subtotal + taxAmt - discount);
+    let delivery = 0;
+    if (currentOrderType === 'delivery') {
+        delivery = parseFloat(document.getElementById('posDeliveryCharges')?.value) || 0;
+    }
+    return Math.max(0, subtotal + taxAmt + delivery - discount);
 }
 
 let currentPayMethod = 'cash';
@@ -1345,8 +1484,8 @@ function onCreditCustChange() {
     document.getElementById('dispOldBalance').innerText = 'Rs. ' + oldBal.toLocaleString();
 }
 
-// 🚀 فائنل سیو اور پرنٹ فنکشن
-function saveSale(shouldPrint) {
+// 🚀 فائنل سیو اور پرنٹ فنکشن (سپورٹ برائے KOT اور ریسٹورنٹ ٹیبلز)
+function saveSale(shouldPrint, shouldPrintKot) {
     let lang = localStorage.getItem('pos_lang') || 'ur';
 
     // اگر کارٹ خالی ہے لیکن پروڈکٹ باکس میں کوئی آئٹم منتخب ہے تو خود بخود کارٹ میں ڈال دیں
@@ -1391,7 +1530,14 @@ function saveSale(shouldPrint) {
     let taxRate = parseFloat(document.getElementById('taxRateInput').value) || 0;
     let taxAmount = parseFloat(document.getElementById('taxAmountInput').value) || 0;
     let discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    let grandTotal = Math.max(0, subtotal + taxAmount - discount);
+    
+    let orderType = document.querySelector('input[name="posOrderType"]:checked')?.value || 'retail';
+    let tableSelect = document.getElementById('posTableSelect');
+    let tableId = tableSelect ? tableSelect.value : null;
+    let tableNumber = (tableSelect && tableSelect.selectedIndex > 0) ? tableSelect.options[tableSelect.selectedIndex].getAttribute('data-number') : '';
+    let riderName = document.getElementById('posRiderName')?.value.trim() || '';
+    let deliveryCharges = (orderType === 'delivery') ? (parseFloat(document.getElementById('posDeliveryCharges')?.value) || 0) : 0;
+    let grandTotal = getCartTotal();
     
     let paidInputVal = document.getElementById('paidAmount').value;
     let paidAmount = 0;
@@ -1412,13 +1558,18 @@ function saveSale(shouldPrint) {
         tax_rate: taxRate,
         tax_amount: taxAmount,
         discount: discount,
+        delivery_charges: deliveryCharges,
         total_amount: grandTotal,
         paid_amount: paidAmount,
         date: (document.getElementById('invoiceDate') ? document.getElementById('invoiceDate').value : ''),
-        due_amount: grandTotal - paidAmount,
+        due_amount: Math.max(0, grandTotal - paidAmount),
         cash_amount: (currentPayMethod === 'cash' ? paidAmount : (currentPayMethod === 'online' ? 0 : (parseFloat(document.getElementById('cashAmount')?.value) || 0))),
         online_amount: (currentPayMethod === 'online' ? paidAmount : (currentPayMethod === 'cash' ? 0 : (parseFloat(document.getElementById('onlineAmount')?.value) || 0))),
-        payment_method: currentPayMethod === 'cash' ? 'Cash' : (currentPayMethod === 'online' ? 'Online' : 'Split')
+        payment_method: currentPayMethod === 'cash' ? 'Cash' : (currentPayMethod === 'online' ? 'Online' : 'Split'),
+        order_type: orderType,
+        table_id: tableId,
+        table_number: tableNumber,
+        rider_name: riderName
     };
 
     fetch('/api/save_sale', {
@@ -1429,12 +1580,17 @@ function saveSale(shouldPrint) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            // اگر KOT پرنٹ کرنا مقصود ہو تو کچن کی ونڈو کھولیں
+            if (shouldPrintKot && data.sale_id) {
+                window.open(`/receipt/kot/${data.sale_id}`, '_blank', 'width=380,height=600');
+            }
+
             if (shouldPrint) {
                 printReceiptSilently(data);
             }
 
             cart = [];
-                renderCart();
+            renderCart();
             
             document.getElementById('paidAmount').value = '';
             if (document.getElementById('payMethodCash')) {
@@ -1458,9 +1614,13 @@ function saveSale(shouldPrint) {
                 document.getElementById('newCustAddress').value = '';
             }
 
-            document.getElementById('typeCash').checked = true;
-            switchCustType('cash');
-            document.getElementById('barcodeInput').focus();
+            if (document.getElementById('typeCash')) {
+                document.getElementById('typeCash').checked = true;
+                switchCustType('cash');
+            }
+            if (document.getElementById('barcodeInput')) {
+                document.getElementById('barcodeInput').focus();
+            }
             alert('بل کامیابی سے محفوظ ہو گیا!');
         } else {
             alert('Error: ' + data.message);
@@ -1493,23 +1653,44 @@ function printReceiptSilently(data) {
     }
 }
 
-// کی بورڈ شارٹ کٹس: F9 پرنٹ، F8 سیو
+// کی بورڈ شارٹ کٹس: F9 پرنٹ، F8 KOT / سیو
 document.addEventListener('keydown', function (e) {
     if (e.key === 'F9') {
         e.preventDefault();
-        saveSale(true);
+        saveSale(true, false);
     } else if (e.key === 'F8') {
         e.preventDefault();
-        saveSale(false);
+        {% if store.enable_kot %}
+        saveSale(false, true);
+        {% else %}
+        saveSale(false, false);
+        {% endif %}
     }
 });
 
-// Set default invoice date to today & render initial cart
+// Set default invoice date to today & handle incoming URL params (Table / Floor plan)
 document.addEventListener('DOMContentLoaded', function() {
     const invDateInput = document.getElementById('invoiceDate');
     if (invDateInput && !invDateInput.value) {
         invDateInput.value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     }
+
+    // Check URL parameters for table order from visual floor plan
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableId = urlParams.get('table_id');
+    const orderType = urlParams.get('order_type');
+    
+    if (orderType) {
+        let rBtn = document.getElementById('orderType' + (orderType === 'dine_in' ? 'DineIn' : (orderType === 'takeaway' ? 'Takeaway' : 'Delivery')));
+        if (rBtn) {
+            rBtn.checked = true;
+            switchOrderType(orderType);
+        }
+    }
+    if (tableId && document.getElementById('posTableSelect')) {
+        document.getElementById('posTableSelect').value = tableId;
+    }
+
     renderCart();
 });
 </script>
