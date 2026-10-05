@@ -270,7 +270,6 @@
                     </select>
                 </div>
             </div>
-
             <!-- Weight field — only shown for Pcs-based products -->
             <div class="row g-2 mb-3" id="weightFieldRow" style="display:none;">
                 <div class="col-12">
@@ -301,8 +300,7 @@
                 <span class="lang-text" data-en="Customer Details" data-ur="گاہک کی تفصیل">Customer Details</span>
             </h6>
 
-            <!-- کسٹمر ٹائپ کے 3 ٹیبز (صرف اگر کھاتہ آن ہو) -->
-            {% if store.enable_khata %}
+            <!-- کسٹمر ٹائپ کے 3 ٹیبز -->
             <div class="btn-group w-100 mb-3" role="group">
                 <input type="radio" class="btn-check" name="custType" id="typeCash" value="cash" checked onchange="switchCustType('cash')">
                 <label class="btn btn-outline-primary cust-tab-btn lang-text" for="typeCash" data-en="💵 Cash" data-ur="💵 نقد">💵 Cash</label>
@@ -313,9 +311,6 @@
                 <input type="radio" class="btn-check" name="custType" id="typeNew" value="new_credit" onchange="switchCustType('new_credit')">
                 <label class="btn btn-outline-primary cust-tab-btn lang-text" for="typeNew" data-en="➕ New Account" data-ur="➕ نیا کھاتہ">➕ New Account</label>
             </div>
-            {% else %}
-            <input type="hidden" name="custType" id="typeCash" value="cash">
-            {% endif %}
 
             <!-- 1. کیش گاہک -->
             <div id="boxCash">
@@ -545,7 +540,7 @@
                 </div>
             </div>
 
-            <!-- ایکشن بٹنز: KOT (اگر ریسٹورنٹ آن ہو) یا نارمل سیو و پرنٹ -->
+            <!-- دو الگ الگ خوبصورت بٹن: صرف محفوظ کریں اور محفوظ و پرنٹ کریں -->
             <div class="row g-2 mt-3">
                 <style>
                     .btn-save-modern { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.4); }
@@ -553,11 +548,7 @@
                     
                     .btn-print-modern { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); }
                     .btn-print-modern:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.5); color: white; }
-
-                    .btn-kot-modern { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4); }
-                    .btn-kot-modern:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(245, 158, 11, 0.5); color: white; }
                 </style>
-
                 <div class="col-6">
                     <button class="btn btn-save-modern w-100 py-3 d-flex justify-content-center align-items-center gap-2" onclick="saveSale(false)">
                         <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
@@ -1115,38 +1106,6 @@ function onDiscountAmountChange() {
     updateTotals();
 }
 
-let currentOrderType = 'dine_in';
-function switchOrderType(mode) {
-    currentOrderType = mode;
-    let badge = document.getElementById('activeOrderTypeBadge');
-    let tblBox = document.getElementById('tableSelectorBox');
-    let delBox = document.getElementById('deliveryInfoBox');
-
-    if (mode === 'dine_in') {
-        if (badge) { badge.className = 'badge bg-primary'; badge.innerText = 'Dine-In (ڈائن ان)'; }
-        if (tblBox) tblBox.style.display = 'block';
-        if (delBox) delBox.style.display = 'none';
-    } else if (mode === 'takeaway') {
-        if (badge) { badge.className = 'badge bg-info text-dark'; badge.innerText = 'Takeaway (پارسل)'; }
-        if (tblBox) tblBox.style.display = 'none';
-        if (delBox) delBox.style.display = 'none';
-    } else if (mode === 'delivery') {
-        if (badge) { badge.className = 'badge bg-warning text-dark'; badge.innerText = 'Delivery (ڈلیوری)'; }
-        if (tblBox) tblBox.style.display = 'none';
-        if (delBox) delBox.style.display = 'flex';
-    }
-    updateTotals();
-}
-
-function setFractionalQty(qty) {
-    let qEl = document.getElementById('itemQty');
-    if (qEl) {
-        qEl.value = qty;
-        qEl.focus();
-        calcPOSProfit();
-    }
-}
-
 function getCartTotal() {
     let subtotal = cart.reduce((sum, item) => sum + item.total, 0);
     let rate = parseFloat(document.getElementById('taxRateInput').value) || 0;
@@ -1157,11 +1116,7 @@ function getCartTotal() {
         taxAmt = parseFloat(document.getElementById('taxAmountInput').value) || 0;
     }
     let discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    let delivery = 0;
-    if (currentOrderType === 'delivery') {
-        delivery = parseFloat(document.getElementById('posDeliveryCharges')?.value) || 0;
-    }
-    return Math.max(0, subtotal + taxAmt + delivery - discount);
+    return Math.max(0, subtotal + taxAmt - discount);
 }
 
 let currentPayMethod = 'cash';
@@ -1390,8 +1345,8 @@ function onCreditCustChange() {
     document.getElementById('dispOldBalance').innerText = 'Rs. ' + oldBal.toLocaleString();
 }
 
-// 🚀 فائنل سیو اور پرنٹ فنکشن (سپورٹ برائے KOT اور ریسٹورنٹ ٹیبلز)
-function saveSale(shouldPrint, shouldPrintKot) {
+// 🚀 فائنل سیو اور پرنٹ فنکشن
+function saveSale(shouldPrint) {
     let lang = localStorage.getItem('pos_lang') || 'ur';
 
     // اگر کارٹ خالی ہے لیکن پروڈکٹ باکس میں کوئی آئٹم منتخب ہے تو خود بخود کارٹ میں ڈال دیں
@@ -1436,14 +1391,7 @@ function saveSale(shouldPrint, shouldPrintKot) {
     let taxRate = parseFloat(document.getElementById('taxRateInput').value) || 0;
     let taxAmount = parseFloat(document.getElementById('taxAmountInput').value) || 0;
     let discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    
-    let orderType = document.querySelector('input[name="posOrderType"]:checked')?.value || 'retail';
-    let tableSelect = document.getElementById('posTableSelect');
-    let tableId = tableSelect ? tableSelect.value : null;
-    let tableNumber = (tableSelect && tableSelect.selectedIndex > 0) ? tableSelect.options[tableSelect.selectedIndex].getAttribute('data-number') : '';
-    let riderName = document.getElementById('posRiderName')?.value.trim() || '';
-    let deliveryCharges = (orderType === 'delivery') ? (parseFloat(document.getElementById('posDeliveryCharges')?.value) || 0) : 0;
-    let grandTotal = getCartTotal();
+    let grandTotal = Math.max(0, subtotal + taxAmount - discount);
     
     let paidInputVal = document.getElementById('paidAmount').value;
     let paidAmount = 0;
@@ -1464,18 +1412,13 @@ function saveSale(shouldPrint, shouldPrintKot) {
         tax_rate: taxRate,
         tax_amount: taxAmount,
         discount: discount,
-        delivery_charges: deliveryCharges,
         total_amount: grandTotal,
         paid_amount: paidAmount,
         date: (document.getElementById('invoiceDate') ? document.getElementById('invoiceDate').value : ''),
-        due_amount: Math.max(0, grandTotal - paidAmount),
+        due_amount: grandTotal - paidAmount,
         cash_amount: (currentPayMethod === 'cash' ? paidAmount : (currentPayMethod === 'online' ? 0 : (parseFloat(document.getElementById('cashAmount')?.value) || 0))),
         online_amount: (currentPayMethod === 'online' ? paidAmount : (currentPayMethod === 'cash' ? 0 : (parseFloat(document.getElementById('onlineAmount')?.value) || 0))),
-        payment_method: currentPayMethod === 'cash' ? 'Cash' : (currentPayMethod === 'online' ? 'Online' : 'Split'),
-        order_type: orderType,
-        table_id: tableId,
-        table_number: tableNumber,
-        rider_name: riderName
+        payment_method: currentPayMethod === 'cash' ? 'Cash' : (currentPayMethod === 'online' ? 'Online' : 'Split')
     };
 
     fetch('/api/save_sale', {
@@ -1486,17 +1429,12 @@ function saveSale(shouldPrint, shouldPrintKot) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // اگر KOT پرنٹ کرنا مقصود ہو تو کچن کی ونڈو کھولیں
-            if (shouldPrintKot && data.sale_id) {
-                window.open(`/receipt/kot/${data.sale_id}`, '_blank', 'width=380,height=600');
-            }
-
             if (shouldPrint) {
                 printReceiptSilently(data);
             }
 
             cart = [];
-            renderCart();
+                renderCart();
             
             document.getElementById('paidAmount').value = '';
             if (document.getElementById('payMethodCash')) {
@@ -1520,13 +1458,9 @@ function saveSale(shouldPrint, shouldPrintKot) {
                 document.getElementById('newCustAddress').value = '';
             }
 
-            if (document.getElementById('typeCash')) {
-                document.getElementById('typeCash').checked = true;
-                switchCustType('cash');
-            }
-            if (document.getElementById('barcodeInput')) {
-                document.getElementById('barcodeInput').focus();
-            }
+            document.getElementById('typeCash').checked = true;
+            switchCustType('cash');
+            document.getElementById('barcodeInput').focus();
             alert('بل کامیابی سے محفوظ ہو گیا!');
         } else {
             alert('Error: ' + data.message);
@@ -1559,44 +1493,23 @@ function printReceiptSilently(data) {
     }
 }
 
-// کی بورڈ شارٹ کٹس: F9 پرنٹ، F8 KOT / سیو
+// کی بورڈ شارٹ کٹس: F9 پرنٹ، F8 سیو
 document.addEventListener('keydown', function (e) {
     if (e.key === 'F9') {
         e.preventDefault();
-        saveSale(true, false);
+        saveSale(true);
     } else if (e.key === 'F8') {
         e.preventDefault();
-        {% if store.enable_kot %}
-        saveSale(false, true);
-        {% else %}
-        saveSale(false, false);
-        {% endif %}
+        saveSale(false);
     }
 });
 
-// Set default invoice date to today & handle incoming URL params (Table / Floor plan)
+// Set default invoice date to today & render initial cart
 document.addEventListener('DOMContentLoaded', function() {
     const invDateInput = document.getElementById('invoiceDate');
     if (invDateInput && !invDateInput.value) {
         invDateInput.value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     }
-
-    // Check URL parameters for table order from visual floor plan
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableId = urlParams.get('table_id');
-    const orderType = urlParams.get('order_type');
-    
-    if (orderType) {
-        let rBtn = document.getElementById('orderType' + (orderType === 'dine_in' ? 'DineIn' : (orderType === 'takeaway' ? 'Takeaway' : 'Delivery')));
-        if (rBtn) {
-            rBtn.checked = true;
-            switchOrderType(orderType);
-        }
-    }
-    if (tableId && document.getElementById('posTableSelect')) {
-        document.getElementById('posTableSelect').value = tableId;
-    }
-
     renderCart();
 });
 </script>

@@ -712,74 +712,6 @@ def init_db():
             INSERT OR IGNORE INTO store_settings (id, store_name_en, store_name_ur, tagline, phone1, phone2, address_en, address_ur, invoice_footer, logo_path, license_key)
             VALUES (1, 'Smart POS System', 'اسمارٹ پی او ایس', 'Retail & Inventory Management System', '0300-0000000', '', 'Main Market, Lahore', 'مین مارکیٹ، لاہور', 'Thank you for your business! Smart POS System.', '/static/img/jbs_logo_raw.png', '')
         ''')
-
-        # Auto-migration: Modular Business Profile & Feature Switches
-        store_cols = [r[1] for r in cursor.execute("PRAGMA table_info(store_settings)").fetchall()]
-        modular_cols = [
-            ('business_type', "TEXT DEFAULT 'retail'"),
-            ('enable_tables', "INTEGER DEFAULT 0"),
-            ('enable_rooms', "INTEGER DEFAULT 0"),
-            ('enable_kot', "INTEGER DEFAULT 0"),
-            ('enable_delivery', "INTEGER DEFAULT 1"),
-            ('enable_weight', "INTEGER DEFAULT 0"),
-            ('enable_barcode', "INTEGER DEFAULT 1"),
-            ('enable_khata', "INTEGER DEFAULT 1"),
-            ('enable_suppliers', "INTEGER DEFAULT 1"),
-            ('enable_expenses', "INTEGER DEFAULT 1"),
-            ('enable_quotations', "INTEGER DEFAULT 1")
-        ]
-        for m_col, m_def in modular_cols:
-            if m_col not in store_cols:
-                try:
-                    cursor.execute(f"ALTER TABLE store_settings ADD COLUMN {m_col} {m_def}")
-                except Exception:
-                    pass
-
-        # 13. Restaurant Tables & Sections Floor Management
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS restaurant_tables (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                table_number TEXT NOT NULL,
-                section TEXT DEFAULT 'Main Hall',
-                capacity INTEGER DEFAULT 4,
-                status TEXT DEFAULT 'available',
-                current_sale_id INTEGER DEFAULT NULL,
-                current_amount REAL DEFAULT 0.0,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        tbl_cnt = cursor.execute("SELECT COUNT(*) FROM restaurant_tables").fetchone()[0]
-        if tbl_cnt == 0:
-            default_tables = [
-                ('Table 1', 'Main Hall (مین ہال)', 4),
-                ('Table 2', 'Main Hall (مین ہال)', 4),
-                ('Table 3', 'Main Hall (مین ہال)', 6),
-                ('Table 4', 'Main Hall (مین ہال)', 2),
-                ('Cabin 1', 'Family Rooms (فیملی کیبن)', 6),
-                ('Cabin 2', 'Family Rooms (فیملی کیبن)', 8),
-                ('Roof 1', 'Rooftop (روف ٹاپ)', 4),
-                ('Roof 2', 'Rooftop (روف ٹاپ)', 4)
-            ]
-            for t_num, sec, cap in default_tables:
-                cursor.execute("INSERT INTO restaurant_tables (table_number, section, capacity, status) VALUES (?, ?, ?, 'available')", (t_num, sec, cap))
-
-        # Auto-migration: Restaurant fields in sales
-        sales_cols = [r[1] for r in cursor.execute("PRAGMA table_info(sales)").fetchall()]
-        sales_mod_cols = [
-            ('order_type', "TEXT DEFAULT 'retail'"),
-            ('table_id', "INTEGER DEFAULT NULL"),
-            ('table_number', "TEXT DEFAULT NULL"),
-            ('rider_name', "TEXT DEFAULT NULL"),
-            ('delivery_charges', "REAL DEFAULT 0.0"),
-            ('kot_printed', "INTEGER DEFAULT 0"),
-            ('kot_number', "TEXT DEFAULT NULL")
-        ]
-        for s_col, s_def in sales_mod_cols:
-            if s_col not in sales_cols:
-                try:
-                    cursor.execute(f"ALTER TABLE sales ADD COLUMN {s_col} {s_def}")
-                except Exception:
-                    pass
     except Exception as e:
         logger.error(f"Migration error in init_db: {e}")
 
@@ -923,25 +855,14 @@ def get_store_settings():
         'id': 1,
         'store_name_en': 'Smart POS System',
         'store_name_ur': 'اسمارٹ پی او ایس',
-        'tagline': 'Powered by YusrTEC — Making Business Effortless',
+        'tagline': 'Retail & Inventory Management System',
         'phone1': '0300-0000000',
         'phone2': '',
-        'address_en': 'Main Market, Pakistan',
-        'address_ur': 'مین مارکیٹ، پاکستان',
-        'invoice_footer': 'Thank you for your business! Powered by YusrTEC.',
+        'address_en': 'Main Market, Lahore',
+        'address_ur': 'مین مارکیٹ، لاہور',
+        'invoice_footer': 'Thank you for your business! Smart POS System.',
         'logo_path': '/static/img/jbs_logo_raw.png',
-        'license_key': '',
-        'business_type': 'retail',
-        'enable_tables': 0,
-        'enable_rooms': 0,
-        'enable_kot': 0,
-        'enable_delivery': 1,
-        'enable_weight': 0,
-        'enable_barcode': 1,
-        'enable_khata': 1,
-        'enable_suppliers': 1,
-        'enable_expenses': 1,
-        'enable_quotations': 1
+        'license_key': ''
     }
     try:
         conn = get_db()
@@ -949,9 +870,7 @@ def get_store_settings():
         conn.close()
         if row:
             res = dict(row)
-            merged = dict(defaults)
-            merged.update(res)
-            return merged
+            return res
     except Exception as e:
         logger.error(f"Error fetching store settings: {e}")
     return defaults
@@ -1105,18 +1024,6 @@ def api_settings_save():
         address_ur = (data.get('address_ur') or '').strip()
         invoice_footer = (data.get('invoice_footer') or '').strip()
 
-        business_type = (data.get('business_type') or 'retail').strip().lower()
-        enable_tables = 1 if str(data.get('enable_tables', '')).lower() in ('1', 'true', 'on') else 0
-        enable_rooms = 1 if str(data.get('enable_rooms', '')).lower() in ('1', 'true', 'on') else 0
-        enable_kot = 1 if str(data.get('enable_kot', '')).lower() in ('1', 'true', 'on') else 0
-        enable_delivery = 1 if str(data.get('enable_delivery', '1')).lower() in ('1', 'true', 'on') else 0
-        enable_weight = 1 if str(data.get('enable_weight', '')).lower() in ('1', 'true', 'on') else 0
-        enable_barcode = 1 if str(data.get('enable_barcode', '1')).lower() in ('1', 'true', 'on') else 0
-        enable_khata = 1 if str(data.get('enable_khata', '1')).lower() in ('1', 'true', 'on') else 0
-        enable_suppliers = 1 if str(data.get('enable_suppliers', '1')).lower() in ('1', 'true', 'on') else 0
-        enable_expenses = 1 if str(data.get('enable_expenses', '1')).lower() in ('1', 'true', 'on') else 0
-        enable_quotations = 1 if str(data.get('enable_quotations', '1')).lower() in ('1', 'true', 'on') else 0
-
         conn = get_db()
         conn.execute("""
             UPDATE store_settings SET 
@@ -1127,25 +1034,12 @@ def api_settings_save():
                 phone2 = ?,
                 address_en = ?,
                 address_ur = ?,
-                invoice_footer = ?,
-                business_type = ?,
-                enable_tables = ?,
-                enable_rooms = ?,
-                enable_kot = ?,
-                enable_delivery = ?,
-                enable_weight = ?,
-                enable_barcode = ?,
-                enable_khata = ?,
-                enable_suppliers = ?,
-                enable_expenses = ?,
-                enable_quotations = ?
+                invoice_footer = ?
             WHERE id = 1
-        """, (store_name_en, store_name_ur, tagline, phone1, phone2, address_en, address_ur, invoice_footer,
-              business_type, enable_tables, enable_rooms, enable_kot, enable_delivery, enable_weight,
-              enable_barcode, enable_khata, enable_suppliers, enable_expenses, enable_quotations))
+        """, (store_name_en, store_name_ur, tagline, phone1, phone2, address_en, address_ur, invoice_footer))
         conn.commit()
         conn.close()
-        return jsonify({'success': True, 'message': 'اسٹور اور ماڈیولر فیچرز کی ترتیبات کامیابی کے ساتھ محفوظ ہو گئیں!'})
+        return jsonify({'success': True, 'message': 'اسٹور کی ترتیبات کامیابی کے ساتھ محفوظ ہو گئیں!'})
     except Exception as e:
         logger.error(f"Error saving settings: {e}")
         return jsonify({'success': False, 'message': f'خرابی: {str(e)}'}), 500
@@ -6036,76 +5930,8 @@ def pos_screen():
         products.append(pd)
 
     customers = conn.execute("SELECT * FROM customers ORDER BY name ASC").fetchall()
-    tables = conn.execute("SELECT * FROM restaurant_tables ORDER BY section, id").fetchall()
     conn.close()
-    return render_template('pos.html', products=products, customers=customers, tables=[dict(t) for t in tables])
-
-@app.route('/restaurant/pos')
-@app.route('/pos/restaurant')
-@login_required
-def restaurant_pos_screen():
-    conn = get_db()
-    products_db = conn.execute("SELECT * FROM products WHERE (is_deleted = 0 OR is_deleted IS NULL) ORDER BY category ASC, name ASC").fetchall()
-    
-    products = []
-    categories = set()
-    for p in products_db:
-        pd = dict(p)
-        pd['price'] = pd.get('sale_price', 0)
-        cat = (pd.get('category') or '').strip() or 'General'
-        categories.add(cat)
-        products.append(pd)
-        
-    customers = conn.execute("SELECT * FROM customers ORDER BY name ASC").fetchall()
-    tables = conn.execute("SELECT * FROM restaurant_tables ORDER BY section, id").fetchall()
-    store = get_store_settings()
-    conn.close()
-    return render_template('restaurant_pos.html', 
-                           products=products, 
-                           categories=sorted(list(categories)), 
-                           customers=[dict(c) for c in customers], 
-                           tables=[dict(t) for t in tables],
-                           store=store)
-
-@app.route('/api/restaurant/seed_demo', methods=['POST'])
-@login_required
-def api_seed_restaurant_demo():
-    try:
-        sample_dishes = [
-            ("Special Chicken Biryani (اسپیشل چکن بریانی)", "Rice & Biryani", "Plate", 220, 380, 100),
-            ("Chicken Karahi Half (چکن کڑاہی ہاف)", "Karahi & Handi", "Karahi", 600, 950, 50),
-            ("Chicken Karahi Full (چکن کڑاہی فل)", "Karahi & Handi", "Karahi", 1100, 1750, 50),
-            ("Crispy Zinger Burger (کرسپی زنگر برگر)", "Fast Food", "Pcs", 240, 420, 100),
-            ("Club Sandwich Special (کلب سینڈوچ)", "Fast Food", "Pcs", 210, 380, 80),
-            ("Chicken Tikka Chest Boti (چکن تکہ چیسٹ)", "BBQ & Tikka", "Plate", 200, 360, 80),
-            ("Beef Seekh Kabab 4 Pcs (بیف سیخ کباب)", "BBQ & Tikka", "Plate", 190, 340, 80),
-            ("Chicken Malai Boti (چکن ملائی بوٹی)", "BBQ & Tikka", "Plate", 280, 480, 70),
-            ("Chicken Achari Handi (چکن اچاری ہانڈی)", "Karahi & Handi", "Handi", 750, 1250, 40),
-            ("Chicken Cheese Pizza (چکن چیز پیزا میڈیم)", "Pizza & Pasta", "Pcs", 480, 850, 60),
-            ("Fresh Roghani Naan (تازہ روغنی نان)", "Tandoor & Breads", "Pcs", 25, 60, 200),
-            ("Garlic Naan Special (گارلک نان اسپیشل)", "Tandoor & Breads", "Pcs", 40, 90, 150),
-            ("Fresh Salad & Mint Raita (سلاد اور رائتہ)", "Salads & Raita", "Plate", 50, 120, 100),
-            ("Soft Drink 500ml (کولڈ ڈرنک)", "Beverages", "Bottle", 70, 90, 200),
-            ("Karak Doodh Patti Chai (کڑک دودھ پتی چائے)", "Beverages & Chai", "Cup", 40, 100, 300),
-            ("Shahi Kheer Cup (شاہی کھیر کپ)", "Desserts", "Cup", 80, 150, 80)
-        ]
-        conn = get_db()
-        added_count = 0
-        for name, cat, unit, buy_price, sale_price, stock in sample_dishes:
-            existing = conn.execute("SELECT id FROM products WHERE name = ?", (name,)).fetchone()
-            if not existing:
-                code_rnd = secrets.randbelow(9000) + 1000
-                conn.execute("""
-                    INSERT INTO products (name, category, unit, buy_price, sale_price, stock, min_stock, code)
-                    VALUES (?, ?, ?, ?, ?, ?, 10, ?)
-                """, (name, cat, unit, buy_price, sale_price, stock, f"REST-{code_rnd}"))
-                added_count += 1
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': f'{added_count} لذیذ کھانے مینو میں شامل کر دیے گئے ہیں!', 'count': added_count})
-    except Exception as e:
-        logger.error(f"Error seeding restaurant demo menu: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+    return render_template('pos.html', products=products, customers=customers)
 
 @app.route('/api/save_sale', methods=['POST'])
 @login_required
@@ -6123,24 +5949,13 @@ def save_sale():
         tax_amount = round(float(data.get('tax_amount', 0) or 0), 2)
         discount = round(float(data.get('discount', 0) or 0), 2)
 
-        order_type = (data.get('order_type') or 'retail').strip().lower()
-        table_id = data.get('table_id')
-        try:
-            table_id = int(table_id) if table_id else None
-        except (ValueError, TypeError):
-            table_id = None
-        table_number = (data.get('table_number') or '').strip()
-        rider_name = (data.get('rider_name') or '').strip()
-        delivery_charges = round(float(data.get('delivery_charges', 0) or 0), 2)
-        kot_number = (data.get('kot_number') or '').strip()
-
         if subtotal == 0 and items:
             subtotal = sum(round(float(it.get('qty', 1)) * float(it.get('price', 0)), 2) for it in items)
 
         if tax_amount == 0 and tax_rate > 0:
             tax_amount = round(subtotal * (tax_rate / 100.0), 2)
 
-        total_amount = round(float(data.get('total_amount', (subtotal + tax_amount + delivery_charges - discount))), 2)
+        total_amount = round(float(data.get('total_amount', (subtotal + tax_amount - discount))), 2)
         paid_amount = round(float(data.get('paid_amount', 0)), 2)
         cash_amount = float(data.get('cash_amount', paid_amount))
         online_amount = float(data.get('online_amount', 0))
@@ -6179,14 +5994,6 @@ def save_sale():
                                (customer_name, customer_phone, customer_address))
                 customer_id = cursor.lastrowid
 
-        if table_id and not table_number:
-            t_row = cursor.execute("SELECT table_number FROM restaurant_tables WHERE id = ?", (table_id,)).fetchone()
-            if t_row:
-                table_number = t_row['table_number']
-
-        if not kot_number and (order_type in ('dine_in', 'takeaway', 'delivery') or table_id):
-            kot_number = f"KOT-{datetime.now().strftime('%H%M%S')}"
-
         inv_number = f"INV-{uuid.uuid4().hex[:10].upper()}"
         custom_date = (data.get('date') or '').strip()
         if custom_date:
@@ -6194,17 +6001,8 @@ def save_sale():
         else:
             now_str = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
 
-        cursor.execute("""
-            INSERT INTO sales (
-                invoice_no, customer_id, customer_name, subtotal, tax_rate, tax_amount, 
-                discount, total, paid, due, type, date, cash_amount, online_amount,
-                order_type, table_id, table_number, rider_name, delivery_charges, kot_number
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            inv_number, customer_id, customer_name, subtotal, tax_rate, tax_amount, 
-            discount, total_amount, paid_amount, due_amount, actual_type, now_str, cash_amount, online_amount,
-            order_type, table_id, table_number, rider_name, delivery_charges, kot_number
-        ))
+        cursor.execute("INSERT INTO sales (invoice_no, customer_id, customer_name, subtotal, tax_rate, tax_amount, discount, total, paid, due, type, date, cash_amount, online_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                       (inv_number, customer_id, customer_name, subtotal, tax_rate, tax_amount, discount, total_amount, paid_amount, due_amount, actual_type, now_str, cash_amount, online_amount))
         sale_id = cursor.lastrowid
 
         if customer_id:
@@ -6227,38 +6025,9 @@ def save_sale():
                            (sale_id, p_id, it.get('name'), qty, base_qty, price, current_buy_price, round(qty * price, 2), unit, weight))
             cursor.execute("UPDATE products SET stock = stock - ? WHERE id = ?", (base_qty, p_id))
 
-        # Update table status if table_id is linked
-        if table_id:
-            if paid_amount >= total_amount and total_amount > 0:
-                cursor.execute("UPDATE restaurant_tables SET status = 'available', current_sale_id = NULL, current_amount = 0.0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (table_id,))
-            else:
-                cursor.execute("UPDATE restaurant_tables SET status = 'occupied', current_sale_id = ?, current_amount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
-                               (sale_id, due_amount if due_amount > 0 else total_amount, table_id))
-
         conn.commit()
         conn.close()
-        return jsonify({
-            'success': True, 
-            'sale_id': sale_id, 
-            'invoice_no': inv_number, 
-            'customer_name': customer_name, 
-            'subtotal': subtotal, 
-            'tax_rate': tax_rate, 
-            'tax_amount': tax_amount, 
-            'discount': discount, 
-            'total': total_amount, 
-            'paid': paid_amount, 
-            'due': due_amount, 
-            'type': actual_type, 
-            'date': now_str, 
-            'items': items,
-            'order_type': order_type,
-            'table_id': table_id,
-            'table_number': table_number,
-            'rider_name': rider_name,
-            'delivery_charges': delivery_charges,
-            'kot_number': kot_number
-        })
+        return jsonify({'success': True, 'sale_id': sale_id, 'invoice_no': inv_number, 'customer_name': customer_name, 'subtotal': subtotal, 'tax_rate': tax_rate, 'tax_amount': tax_amount, 'discount': discount, 'total': total_amount, 'paid': paid_amount, 'due': due_amount, 'type': actual_type, 'date': now_str, 'items': items})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -7740,227 +7509,6 @@ def delete_personal_loan(loan_id):
         conn.commit()
         conn.close()
         return jsonify({'success': True, 'message': 'قرضہ ریکارڈ ڈیلیٹ ہو گیا'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-# ==============================================================================
-# RESTAURANT TABLES, CABINS, AND KOT (KITCHEN ORDER TICKET) MANAGEMENT
-# ==============================================================================
-
-@app.route('/tables')
-@login_required
-def restaurant_tables_screen():
-    store = get_store_settings()
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    tables_raw = cursor.execute("SELECT * FROM restaurant_tables ORDER BY section ASC, id ASC").fetchall()
-    tables = [dict(t) for t in tables_raw]
-    
-    total_count = len(tables)
-    avail_count = sum(1 for t in tables if t.get('status') == 'available')
-    occupied_count = sum(1 for t in tables if t.get('status') == 'occupied')
-    billed_count = sum(1 for t in tables if t.get('status') == 'billed')
-    total_floor_sales = sum(float(t.get('current_amount') or 0.0) for t in tables if t.get('status') in ('occupied', 'billed'))
-    
-    sections = sorted(list(set(t.get('section', 'Main Hall') for t in tables if t.get('section'))))
-    if not sections:
-        sections = ['Main Hall']
-
-    stats = {
-        'total': total_count,
-        'available': avail_count,
-        'occupied': occupied_count,
-        'billed': billed_count,
-        'floor_sales': total_floor_sales
-    }
-
-    conn.close()
-    return render_template('tables.html', tables=tables, stats=stats, sections=sections, store=store)
-
-@app.route('/api/tables', methods=['GET'])
-@login_required
-def api_tables_list():
-    try:
-        conn = get_db()
-        tables_raw = conn.execute("SELECT * FROM restaurant_tables ORDER BY section ASC, id ASC").fetchall()
-        conn.close()
-        return jsonify({'success': True, 'tables': [dict(t) for t in tables_raw]})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/add', methods=['POST'])
-@login_required
-def api_table_add():
-    try:
-        data = request.get_json() or {}
-        table_number = (data.get('table_number') or '').strip()
-        section = (data.get('section') or 'Main Hall (مین ہال)').strip()
-        capacity = int(data.get('capacity', 4) or 4)
-
-        if not table_number:
-            return jsonify({'success': False, 'message': 'ٹیبل یا روم کا نام درج کریں!'}), 400
-
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO restaurant_tables (table_number, section, capacity, status) VALUES (?, ?, ?, 'available')",
-                       (table_number, section, capacity))
-        new_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'table_id': new_id, 'message': f"ٹیبل '{table_number}' کامیابی سے شامل کر دی گئی!"})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/delete/<int:table_id>', methods=['POST'])
-@login_required
-def api_table_delete(table_id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        t = cursor.execute("SELECT * FROM restaurant_tables WHERE id = ?", (table_id,)).fetchone()
-        if not t:
-            conn.close()
-            return jsonify({'success': False, 'message': 'ٹیبل نہیں ملی'}), 404
-        if t['status'] == 'occupied':
-            conn.close()
-            return jsonify({'success': False, 'message': 'یہ ٹیبل فی الوقت مصروف ہے، پہلے بل کلیئر کریں!'}), 400
-        
-        cursor.execute("DELETE FROM restaurant_tables WHERE id = ?", (table_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'ٹیبل کامیابی سے حذف کر دی گئی!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/status/<int:table_id>', methods=['POST'])
-@login_required
-def api_table_set_status(table_id):
-    try:
-        data = request.get_json() or {}
-        new_status = (data.get('status') or 'available').strip().lower()
-        conn = get_db()
-        cursor = conn.cursor()
-        if new_status == 'available':
-            cursor.execute("UPDATE restaurant_tables SET status = 'available', current_sale_id = NULL, current_amount = 0.0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (table_id,))
-        else:
-            cursor.execute("UPDATE restaurant_tables SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (new_status, table_id))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'اسٹیٹس کامیابی سے اپڈیٹ ہو گیا!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/release/<int:table_id>', methods=['POST'])
-@login_required
-def api_table_release(table_id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE restaurant_tables SET status = 'available', current_sale_id = NULL, current_amount = 0.0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (table_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'ٹیبل کامیابی سے خالی کر دی گئی!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/<int:table_id>/order', methods=['GET'])
-@login_required
-def api_table_order(table_id):
-    try:
-        conn = get_db()
-        table = conn.execute("SELECT * FROM restaurant_tables WHERE id = ?", (table_id,)).fetchone()
-        if not table:
-            conn.close()
-            return jsonify({'success': False, 'message': 'ٹیبل نہیں ملی'}), 404
-        table_dict = dict(table)
-        sale = None
-        items = []
-        if table['current_sale_id']:
-            s_row = conn.execute("SELECT * FROM sales WHERE id = ?", (table['current_sale_id'],)).fetchone()
-            if s_row:
-                sale = dict(s_row)
-                it_rows = conn.execute("SELECT si.*, COALESCE(p.unit, 'Pcs') as prod_unit FROM sale_items si LEFT JOIN products p ON si.product_id = p.id WHERE si.sale_id = ?", (s_row['id'],)).fetchall()
-                items = [dict(r) for r in it_rows]
-        conn.close()
-        return jsonify({'success': True, 'table': table_dict, 'sale': sale, 'items': items})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/tables/<int:table_id>/settle', methods=['POST'])
-@login_required
-def api_table_settle(table_id):
-    try:
-        data = request.get_json() or {}
-        paid_amount = float(data.get('paid_amount', 0) or 0)
-
-        conn = get_db()
-        cursor = conn.cursor()
-        table = cursor.execute("SELECT * FROM restaurant_tables WHERE id = ?", (table_id,)).fetchone()
-        if not table or not table['current_sale_id']:
-            conn.close()
-            return jsonify({'success': False, 'message': 'اس ٹیبل پر کوئی فعال بل نہیں ہے!'}), 400
-
-        sale_id = table['current_sale_id']
-        sale = cursor.execute("SELECT * FROM sales WHERE id = ?", (sale_id,)).fetchone()
-        if sale:
-            total = float(sale['total'] or 0)
-            settle_paid = paid_amount if paid_amount > 0 else total
-            new_due = max(0.0, round(total - settle_paid, 2))
-            new_type = 'credit' if new_due > 0 else 'cash'
-            cursor.execute("UPDATE sales SET paid = ?, due = ?, type = ? WHERE id = ?", (settle_paid, new_due, new_type, sale_id))
-
-        cursor.execute("UPDATE restaurant_tables SET status = 'available', current_sale_id = NULL, current_amount = 0.0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (table_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'بل کی ادائیگی موصول ہو گئی اور ٹیبل خالی کر دی گئی!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/receipt/kot/<path:sale_ident>')
-@login_required
-def view_kot_receipt(sale_ident):
-    try:
-        conn = get_db()
-        sale = None
-        sale_str = str(sale_ident).strip()
-        if sale_str.isdigit():
-            sale = conn.execute("SELECT * FROM sales WHERE id = ?", (int(sale_str),)).fetchone()
-        if not sale:
-            sale = conn.execute("SELECT * FROM sales WHERE LOWER(TRIM(invoice_no)) = LOWER(?)", (sale_str,)).fetchone()
-        if not sale:
-            sale = conn.execute("SELECT * FROM sales WHERE invoice_no LIKE ?", (f"%{sale_str}%",)).fetchone()
-        
-        if not sale:
-            conn.close()
-            return "<div style='font-family:sans-serif;padding:30px;text-align:center;'><h3>KOT Not Found / کچن آرڈر نہیں ملا</h3></div>", 404
-
-        sale_dict = dict(sale)
-        items_raw = conn.execute("SELECT si.*, COALESCE(p.unit, 'Pcs') as prod_unit FROM sale_items si LEFT JOIN products p ON si.product_id = p.id WHERE si.sale_id = ?", (sale_dict['id'],)).fetchall()
-        
-        conn.execute("UPDATE sales SET kot_printed = 1 WHERE id = ?", (sale_dict['id'],))
-        conn.commit()
-        conn.close()
-
-        items = [dict(it) for it in items_raw]
-        return render_template('kot_receipt.html', sale=sale_dict, items=items)
-    except Exception as e:
-        logger.error(f"Error rendering KOT receipt: {e}")
-        return f"Error loading KOT: {e}", 500
-
-@app.route('/api/kot/print/<path:sale_ident>', methods=['POST', 'GET'])
-@login_required
-def api_kot_mark_printed(sale_ident):
-    try:
-        conn = get_db()
-        sale_str = str(sale_ident).strip()
-        if sale_str.isdigit():
-            conn.execute("UPDATE sales SET kot_printed = 1 WHERE id = ?", (int(sale_str),))
-        else:
-            conn.execute("UPDATE sales SET kot_printed = 1 WHERE invoice_no = ?", (sale_str,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'KOT printed marked successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
